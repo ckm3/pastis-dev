@@ -277,7 +277,7 @@ class PlanetParameters(Parameters):
         self.sampledist = interbindist
 
         dd = pd.read_csv(table_path, delim_whitespace=True, header=None,
-                         index_col=None)
+                        index_col=None)
 
         self.rates_column = rates_column
 
@@ -368,7 +368,7 @@ class PlanetParameters(Parameters):
             # Get all columns not filtered in __init__
             A = self.occ_rate_table.loc[self.w > 0, [0, 1, 2, 3]].to_numpy()
                         
-            # Rango en períodos y radios
+            # Range in periods and radii
             deltap = A[:, 1].max() - A[:, 0].min()
             deltar = A[:, 3].max() - A[:, 2].min()
             
@@ -426,8 +426,9 @@ class PlanetParameters(Parameters):
 
         # Eccentricity
         if eccentric:
-            ecc_prior = priors.TruncatedUNormalPrior(0., 0.3, 0., 1.)
-            self.ecc = ecc_prior.rvs(size)
+            # ecc_prior = priors.TruncatedUNormalPrior(0., 0.3, 0., 1.)
+            # self.ecc = ecc_prior.rvs(size)
+            self.ecc = priors.sample_e_from_p(self.period)
             # self.ecc = np.abs(np.random.randn(size) * 0.3)
             self.omega_rad = np.random.rand(size) * 2 * np.pi
 
