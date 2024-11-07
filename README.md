@@ -27,3 +27,20 @@ archivePrefix = {arXiv},
 ```
     
 ## Usage
+Clone the repo
+```
+git clone https://github.com/ckm3/pastis-dev.git
+```
+Enter the folder
+```
+cd pastis-dev/
+```
+Create an conda environment with the given environment.yml
+```
+conda env create -f environment.yml
+```
+Install pastis (first install necessary components based on its README.md)
+```
+cd pastis
+pip install -e .
+```
