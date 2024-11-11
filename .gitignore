@@ -1,3 +1,4 @@
 /simulations
 /notebooks
 pastis/pastis.egg-info/
+pastis/pastis/__pycache__/
