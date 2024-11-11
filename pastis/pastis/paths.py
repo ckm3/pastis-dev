@@ -7,35 +7,32 @@ Created on Thu Mar 15 11:44:57 2018
 
 Define useful paths and modify PYTHONPATH
 """
-import os
+from pathlib import Path
 import sys
 
-# Read environment variables
-PASTISroot = os.getenv('PASTISPATH')
-assert PASTISroot is not None, 'PASTISPATH env variable not defined.'
+# Define project root (assuming this file is in project root)
+PASTISroot = Path(__file__).parent.resolve()
+libpath = PASTISroot / 'lib'
 
-libpath = os.getenv('PASTISLIB')
-assert libpath is not None, 'PASTISLIB env variable not defined.'
-
-idlexec = os.getenv('IDLEXEC')
-
+# Optional IDL executable path (keep if needed)
+idlexec = None
 
 # Define other useful paths
-datapath = os.path.join(PASTISroot, 'datafiles')
-configpath = os.path.join(PASTISroot, 'configfiles')
-resultpath = os.path.join(PASTISroot, 'resultfiles')
-runpath = os.path.join(PASTISroot, 'run')
+datapath = PASTISroot / 'datafiles'
+configpath = PASTISroot / 'configfiles'
+resultpath = PASTISroot / 'resultfiles'
+runpath = PASTISroot / 'run'
 
 # Add directory to pythonpath to read modules from fortran
-fortranpath = os.path.join(os.getenv('PASTISLIB'), 'fortran')
-if not fortranpath in sys.path:
-    sys.path.append(fortranpath)
+fortranpath = libpath / 'fortran'
+if str(fortranpath) not in sys.path:
+    sys.path.append(str(fortranpath))
 
 # Define PATHS and FILES
-filterpath = os.path.join(libpath, 'Filters/')
-zeromagfile = os.path.join(filterpath, 'ZeroFlux.dat')
-setpath = os.path.join(libpath, 'SET')
-ldpath = os.path.join(libpath, 'LD')
-priorspath = os.path.join(libpath, 'Priors')
-minsizefile = os.path.join(priorspath, 'MinimumSize_arcsec2.dat')
+filterpath = libpath / 'Filters'
+zeromagfile = filterpath / 'ZeroFlux.dat'
+setpath = libpath / 'SET'
+ldpath = libpath / 'LD'
+priorspath = libpath / 'Priors'
+minsizefile = priorspath / 'MinimumSize_arcsec2.dat'
 
