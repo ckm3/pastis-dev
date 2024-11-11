@@ -141,6 +141,7 @@ dependencies:
   - qhull=2020.2=h434a139_5
   - qt6-main=6.8.0=h6e8976b_0
   - readline=8.2=h8228510_1
+  - scipy=1.14.1=py311he9a78e4_1
   - setuptools=75.3.0=pyhd8ed1ab_0
   - six=1.16.0=pyh6c4a22f_0
   - stack_data=0.6.2=pyhd8ed1ab_0
@@ -183,4 +184,4 @@ dependencies:
   - zipp=3.20.2=pyhd8ed1ab_0
   - zlib=1.3.1=hb9d3cd8_2
   - zstd=1.5.6=ha6fb4c9_0
-prefix: /home/astro/phsgxb/anaconda3/envs/pastis
+prefix: /home/astro/phsgxb/miniconda3/envs/pastis-env
