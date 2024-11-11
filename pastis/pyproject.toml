@@ -1,0 +1,27 @@
+# pyproject.toml
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pastis"
+version = "0.1.0"
+description = "PASTIS astronomical tools package"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+dependencies = [
+    "numpy",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/ckm3/pastis-dev/tree/main/pastis"
+Repository = "https://github.com/ckm3/pastis-dev/tree/main/pastis"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pastis"]

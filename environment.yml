@@ -1,4 +1,4 @@
-name: pastis
+name: pastis-env
 channels:
   - conda-forge
 dependencies:
