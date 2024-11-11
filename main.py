@@ -7,6 +7,7 @@ Created on Fri May  7 17:28:29 2021
 """
 import numpy as np
 import pandas as pd
+from scipy.stats import gaussian_kde
 
 # Import relevant modules from PASTIS
 from pastis import isochrones, limbdarkening, photometry
@@ -194,16 +195,21 @@ for file in filenames:
     #read files   
     data_pd = pd.read_csv(TEFF_LOGG_MH_data_file)
     #we need the pandas 
-    data = data_pd[['Teff','logg','MH']].values.tolist()
+    data = data_pd[['Teff','logg','MH']]
 
     MH_data_pd = pd.read_csv(MH_data_file)
-    MH_data = MH_data_pd['MH'].values.tolist()
+    MH_data = MH_data_pd['MH'].values
+    
+    kde = gaussian_kde(MH_data, bw_method="scott")
+    new_MH = kde.resample(len(data), seed=1)[0]
+    data['MH'] = new_MH
+    data = data.values.tolist()
 
-    #debe haber una forma mas numpy para esto    
+    # there must be a more numpy way to do this    
     #filling the MH data
-    for star in data:
-        if np.isnan(star[2]):
-            star[2] = np.random.choice(MH_data)
+    # for star in data:
+    #     if np.isnan(star[2]):
+    #         star[2] = np.random.choice(MH_data)
 
     full_data = full_data+data
     full_data_PD = pd.concat([full_data_PD, data_pd])
@@ -215,9 +221,9 @@ for part, end in enumerate(np.linspace(20000, len(full_data), 16, dtype=int)):
     if part>=0: #to avoid restart in case of failure
         print (start, end, "Part:", part)
         TEFF_LOGG_MH_slice = full_data[start:end]
-        #para usar el mismo formato que habia antes
+        # to use the same format as before
         params = TEFF_LOGG_MH_slice.flatten().reshape(3, len(TEFF_LOGG_MH_slice), order='F')
         gen_files(params, part, full_data_PD, method='uniform')
     start = end
-    #nunca se si esto funca o no, just in case
+    # Not sure if this works or not, just in case
     gc.collect()
