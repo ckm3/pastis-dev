@@ -39,6 +39,10 @@ Create an conda environment with the given environment.yml
 ```
 conda env create -f environment.yml
 ```
+Activate the environment
+```
+conda activate pastis-env
+```
 Install pastis (first install necessary components based on its README.md)
 ```
 cd pastis
