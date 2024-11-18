@@ -45,6 +45,6 @@ conda activate pastis-env
 ```
 Install pastis (first install necessary components based on its README.md)
 ```
-cd pastis
+cd pastis-core
 pip install -e .
 ```

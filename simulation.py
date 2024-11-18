@@ -6,7 +6,6 @@ Created on Fri May  7 16:53:49 2021
 @author: rodrigo
 """
 import numpy as np
-
 from pastis import ObjectBuilder as ob
 from pastis import AstroClasses as ac
 from pastis.models import PHOT

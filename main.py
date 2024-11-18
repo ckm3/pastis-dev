@@ -15,14 +15,14 @@ from pastis.extlib import SAMdict, EMdict
 from pastis.paths import filterpath, zeromagfile
 
 # Initialise if needed
-if not hasattr(limbdarkening, "LDCs"):
-    limbdarkening.initialize_limbdarkening(["Johnson-R", "TESS"])
+# if not hasattr(limbdarkening, "LDCs"):
+#     limbdarkening.initialize_limbdarkening(["Johnson-R", "TESS"])
 
-if not hasattr(photometry, "Filters"):
-    photometry.initialize_phot(
-        ["Johnson-R", "TESS"], zeromagfile, filterpath, AMmodel=SAMdict["BT-settl"]
-    )
-    # photometry.initialize_phot_WD()
+# if not hasattr(photometry, "Filters"):
+#     photometry.initialize_phot(
+#         ["Johnson-R", "TESS"], zeromagfile, filterpath, AMmodel=SAMdict["BT-settl"]
+#     )
+#     # photometry.initialize_phot_WD()
 if not hasattr(isochrones, "maxz"):
     isochrones.interpol_tracks(EMdict["Dartmouth"])
     isochrones.prepare_tracks_target(EMdict["Dartmouth"])
@@ -196,13 +196,13 @@ def gen_files(params, part_num, pd_tess, **kwargs):
 print("Reading input files")
 # just the names, next version just parse some directory or something
 filenames = [
-    "tic_dec66_00S__64_00S_",
-    "tic_dec58_00S__56_00S_",
+    # "tic_dec66_00S__64_00S_",
+    # "tic_dec58_00S__56_00S_",
     "tic_dec30_00S__28_00S_",
-    "tic_dec74_00S__72_00S_",
-    "tic_dec62_00S__60_00S_",
-    "tic_dec28_00S__26_00S_",
-    "tic_dec88_00S__86_00S_",
+    # "tic_dec74_00S__72_00S_",
+    # "tic_dec62_00S__60_00S_",
+    # "tic_dec28_00S__26_00S_",
+    # "tic_dec88_00S__86_00S_",
 ]
 
 filenames = filenames * 5  # quick and dirty way to repeat stars, I love it
@@ -226,7 +226,7 @@ for file in filenames:
 
     kde = gaussian_kde(MH_data, bw_method="scott")
     new_MH = kde.resample(len(data), seed=1)[0]
-    data["MH"] = new_MH
+    data.loc[:, "MH"] = new_MH
     data = data.values.tolist()
 
     # there must be a more numpy way to do this

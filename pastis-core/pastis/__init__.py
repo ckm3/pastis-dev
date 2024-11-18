@@ -1,5 +1,5 @@
 import os
-import numpy as n
+import numpy as np
 
 from .paths import libpath, filterpath, zeromagfile
 from .extlib import EMdict
@@ -151,7 +151,7 @@ ClassesList = {
     "PlanSys": {
         "achromatic": [],
         "chromatic": [],
-        "iterable": {"star": 1, "planet": n.inf},
+        "iterable": {"star": 1, "planet": np.inf},
     },
     "Triple": {
         "achromatic": [

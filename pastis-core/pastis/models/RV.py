@@ -20,13 +20,13 @@ import os
 
 # lib = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) +
 # "/fitgauss_c.so")
-lib = cdll.LoadLibrary(os.path.join(libpath, 'cpp', 'fitgauss_c.so'))
+# lib = cdll.LoadLibrary(os.path.join(libpath, 'cpp', 'fitgauss_c.so'))
 # lib.gaussian_res.restype    = c_void
-lib.gaussian_res.argtypes = [POINTER(c_double), POINTER(c_double),
-                             POINTER(c_double), c_int, POINTER(c_double)]
+# lib.gaussian_res.argtypes = [POINTER(c_double), POINTER(c_double),
+                            #  POINTER(c_double), c_int, POINTER(c_double)]
 # lib.gaussian_res_J.restype  = c_void
-lib.gaussian_res_J.argtypes = [POINTER(c_double), POINTER(c_double),
-                               POINTER(c_double), c_int, POINTER(c_double)]
+# lib.gaussian_res_J.argtypes = [POINTER(c_double), POINTER(c_double),
+                            #    POINTER(c_double), c_int, POINTER(c_double)]
 ##
 
 

@@ -3,3 +3,4 @@
 pastis/pastis.egg-info/
 pastis/pastis/__pycache__/
 .vscode/
+*.pyc

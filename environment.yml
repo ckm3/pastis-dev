@@ -151,7 +151,7 @@ dependencies:
   - nest-asyncio
   - nomkl
   - numexpr
-  - numpy
+  - numpy<2
   - numba
   - openjpeg
   - openldap
@@ -196,7 +196,7 @@ dependencies:
   - seaborn
   - seaborn-base
   - secretstorage
-  - setuptools
+  - setuptools<65
   - six
   - snappy
   - soupsieve

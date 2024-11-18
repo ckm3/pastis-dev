@@ -35,7 +35,7 @@ from ..models import RVgaussianFitError
 from ..models.PHOT import PASTIS_PHOT
 from ..models.SED import PASTIS_SED
 from ..models.RV import PASTIS_RV
-from .. import checkblendmag
+# from .. import checkblendmag
 #
 from ..exceptions import EvolTrackError, OutofIsochroneError, EBOPparamError
 

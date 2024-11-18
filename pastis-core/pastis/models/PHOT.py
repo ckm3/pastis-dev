@@ -12,11 +12,12 @@ import numpy as n
 
 from .. import photometry as phot
 
-if sys.version_info > (3, 0):
+# if sys.version_info > (3, 0):
     # Python3
-    import task2_components3 as task2
-else:
-    import task2_components as task2
+    # import task2_components3 as task2
+import jktebop as task2
+# else:
+    # import task2_components as task2
 
 from ..exceptions import EBOPparamError
 
