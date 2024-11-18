@@ -1,5 +1,5 @@
 import os
-import numpy as n
+import numpy as np
 import pickle
 
 import scipy.interpolate
@@ -36,16 +36,16 @@ def loadchains(listfile, target):
 
         if ll.startswith('#'): continue
         
-	betas.append(float(ll.split()[0]))
+ betas.append(float(ll.split()[0]))
 
-	chainfile = os.path.join(resultpath, target, ll.split()[1])
-	ff = open(chainfile, 'r')
-	vds.append(pickle.load(ff))
-	ff.close()
+ chainfile = os.path.join(resultpath, target, ll.split()[1])
+ ff = open(chainfile, 'r')
+ vds.append(pickle.load(ff))
+ ff.close()
 
-    return n.array(betas), vds
+    return np.array(betas), vds
 
-	
+ 
 def compute_logL(vds, median = False):
     """
     Compute the mean logL for a list of chains, usually chains with
@@ -61,12 +61,12 @@ def compute_logL(vds, median = False):
     for i in range(len(vds)):
         logL = vds[i].get_value_dict()['logL']
         if median:
-            meanLogL.append(n.median(logL))
+            meanLogL.append(np.median(logL))
         else:
-            meanLogL.append(n.mean(logL))
+            meanLogL.append(np.mean(logL))
 
-    return n.array(meanLogL)
-			
+    return np.array(meanLogL)
+   
 
 def get_evidence(C1, C2, betas1, betas2 = None, method = 'beta',
                  intmethod = 'simple', **kwargs):
@@ -82,20 +82,20 @@ def get_evidence(C1, C2, betas1, betas2 = None, method = 'beta',
     use_median = kwargs.pop('use_median', False)
     BI = kwargs.pop('BI', 0.0)
     
-    betas1 = n.array(betas1)
+    betas1 = np.array(betas1)
     if betas2 == None:
 	betas2 = betas1.copy()
     else:
-	betas2 = n.array(betas2)
-	
+	betas2 = np.array(betas2)
+ 
     if method == 'beta':
         ml1 = compute_logL(C1, median = use_median)
         ml2 = compute_logL(C2, median = use_median)
 
-        ml1 = ml1[n.argsort(betas1)]
-        ml2 = ml2[n.argsort(betas2)]
-        betas1 = n.sort(betas1)
-        betas2 = n.sort(betas2)
+        ml1 = ml1[np.argsort(betas1)]
+        ml2 = ml2[np.argsort(betas2)]
+        betas1 = np.sort(betas1)
+        betas2 = np.sort(betas2)
 
         #Integrate for all betas
         logE1 = integrate_logL(betas1, ml1, intmethod)
@@ -117,8 +117,8 @@ def get_evidence(C1, C2, betas1, betas2 = None, method = 'beta',
                   )
             return
 
-        vd1 = n.compress(betas1 == 1, C1)[0]
-        vd2 = n.compress(betas2 == 1, C2)[0]
+        vd1 = np.compress(betas1 == 1, C1)[0]
+        vd2 = np.compress(betas2 == 1, C2)[0]
 
         l1 = vd1.get_value_dict()['logL']
         l2 = vd2.get_value_dict()['logL']
@@ -128,14 +128,14 @@ def get_evidence(C1, C2, betas1, betas2 = None, method = 'beta',
         
         # Mean estimation
         if method == 'M':
-            logE1 = n.sum(l1)/len(l1)
-            logE2 = n.sum(l2)/len(l2)
+            logE1 = np.sum(l1)/len(l1)
+            logE2 = np.sum(l2)/len(l2)
 
         # Harmonic mean estimation
         elif method == 'HM':
             n1 = len(l1); n2 = len(l2)
-            logE1 = log(n1) + l1[0] - log(1 + n.sum(n.exp(-(l1[1:] - l1[0]))))
-            logE2 = log(n2) + l2[0] - log(1 + n.sum(n.exp(-(l2[1:] - l2[0]))))
+            logE1 = log(n1) + l1[0] - log(1 + np.sum(np.exp(-(l1[1:] - l1[0]))))
+            logE2 = log(n2) + l2[0] - log(1 + np.sum(np.exp(-(l2[1:] - l2[0]))))
 
         # Truncated posterior-mixture
         elif method == 'TPM':
@@ -203,10 +203,10 @@ def computeTPM(lp, lprior, TPMlag, TPMlambda):
     h = TPMlag
     log_lambda = log( TPMlambda / (1.0 - TPMlambda) )
     
-    gamma_i = lp[h] + log( 1 + exp( log_lambda + lp[0] - lp[h] ) ) - lp[h + 1:] - n.log( 1 + n.exp( log_lambda + lp[1: -h] - lp[h + 1:]) )
+    gamma_i = lp[h] + log( 1 + exp( log_lambda + lp[0] - lp[h] ) ) - lp[h + 1:] - np.log( 1 + np.exp( log_lambda + lp[1: -h] - lp[h + 1:]) )
 
-    logE = lp[h] - lprior[h] + log( 1 + n.sum( n.exp (lp[h + 1:] - lp[h] + gamma_i) ) ) \
-        - log( 1 + n.sum( n.exp (lprior[h + 1 :] - lprior[h] + gamma_i ) ) )
+    logE = lp[h] - lprior[h] + log( 1 + np.sum( np.exp (lp[h + 1:] - lp[h] + gamma_i) ) )\
+        - log( 1 + np.sum( np.exp (lprior[h + 1 :] - lprior[h] + gamma_i ) ) )
 
     return logE
 
@@ -215,24 +215,24 @@ def integrate_logL(x, y, method = 'simple'):
     if method == 'simple':
         ymin = y.min()
         y = y + 2*abs(ymin)
-	return n.sum((x[1:] - x[:-1])*(y[1:] + y[:-1])*0.5) - 2*abs(ymin)
+ return np.sum((x[1:] - x[:-1])*(y[1:] + y[:-1])*0.5) - 2*abs(ymin)
     
 
     elif method == 'quad':
-	# Interpolate function
+ # Interpolate function
 	ff = scipy.interpolate.interp1d(x, y, kind = 'quadratic',
-					bounds_error = False, fill_value = 0.0)
+	    bounds_error = False, fill_value = 0.0)
 	return scipy.integrate.quad(ff, 0, 1)[0]
 
     elif method == 'gquad':
-	# Interpolate function
+ # Interpolate function
 	ff = scipy.interpolate.interp1d(x, y, kind = 'quadratic',
-					bounds_error = False, fill_value = 0.0)
+	    bounds_error = False, fill_value = 0.0)
 	return scipy.integrate.fixed_quad(ff, 0, 1)[0]
 
     else:
 	raise Exception('Invalid integration method')
-	
+ 
 
 def compare_models(target, id1, id2, intmethod = 'simple', plot = True,
                    method = 'beta', use_median = False, minbeta = 0.0,
@@ -253,10 +253,10 @@ def compare_models(target, id1, id2, intmethod = 'simple', plot = True,
     betas1, vds1 = loadchains(f1, target)
     betas2, vds2 = loadchains(f2, target)
 
-    vds1 =  n.compress(betas1 >= minbeta, vds1)
-    vds2 =  n.compress(betas2 >= minbeta, vds2)
-    betas1 =  n.compress(betas1 >= minbeta, betas1)
-    betas2 =  n.compress(betas2 >= minbeta, betas2)
+    vds1 =  np.compress(betas1 >= minbeta, vds1)
+    vds2 =  np.compress(betas2 >= minbeta, vds2)
+    betas1 =  np.compress(betas1 >= minbeta, betas1)
+    betas2 =  np.compress(betas2 >= minbeta, betas2)
     
     
     ids = [id1, id2]
@@ -309,8 +309,8 @@ def compare_models(target, id1, id2, intmethod = 'simple', plot = True,
         evidence_ratio = (max(evid) - min(evid))
 
     # Print
-    evidencestr = 'Evidence ratio M[%s]/M[%s] = %.3e'%(ids[n.argmax(evid)],
-                                                       ids[n.argmin(evid)],
+    evidencestr = 'Evidence ratio M[%s]/M[%s] = %.3e'%(ids[np.argmax(evid)],
+                                                       ids[np.argmin(evid)],
                                                        evidence_ratio
                                                        )
     evidencestr = evidencestr.replace('_', ' ')
@@ -334,11 +334,11 @@ def compare_models(target, id1, id2, intmethod = 'simple', plot = True,
 	f1 = p.figure()
 	ax = f1.add_subplot(111)
 
-        if offset:
+	       if offset:
             oset = abs( 2*min(ml1 - ml2) )
             y = ml1 - ml2 + oset
             ax.loglog(betas1, y, 'o-k', mfc = 'None', ms = 8)
-        else:
+	       else:
             y = ml1 - ml2
             oset = 0.0
             ax.semilogx(betas1, y, 'o-k', mfc = 'None', ms = 8)
@@ -346,15 +346,15 @@ def compare_models(target, id1, id2, intmethod = 'simple', plot = True,
 	ax.set_ylabel('$<\ln(\mathcal{L}_1)> - <\ln(\mathcal{L}_2)>$', fontsize = 16)
 	ax.set_xlabel('Tempering parameter beta', fontsize = 16)
 
-        estr = 'Bayes\' Factor: %.2e'%evidence_ratio
-        ax.text(0.5, 0.7, estr, transform = ax.transAxes, ha = 'left',
-                size = 16)
+	       estr = 'Bayes\' Factor: %.2e'%evidence_ratio
+	       ax.text(0.5, 0.7, estr, transform = ax.transAxes, ha = 'left',
+	               size = 16)
 
-        # Shadow area under curve and horizontal line
-        ## With offset
-        ## Without offset
-        ax.fill_between(betas1, y, y2 = oset, color = '0.55')
-        ax.axhline(offset, ls = ':', color = 'k')
+	       # Shadow area under curve and horizontal line
+	       ## With offset
+	       ## Without offset
+	       ax.fill_between(betas1, y, y2 = oset, color = '0.55')
+	       ax.axhline(offset, ls = ':', color = 'k')
         
         
 	#p.show()

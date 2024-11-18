@@ -1,4 +1,4 @@
-import numpy as n
+import numpy as np
 
 
 def oversample_time_notexp(v, oversampling_factor, dt=None):
@@ -25,7 +25,7 @@ def oversample_time_notexp(v, oversampling_factor, dt=None):
     oversampled array of v
     
     """
-    v = n.array(v, float)
+    v = np.array(v, float)
     if len(v) == 1:
         return v
     if dt is None:
@@ -46,20 +46,20 @@ def oversample_time_notexp(v, oversampling_factor, dt=None):
     if oversampling_factor == 1:
         return v
     
-    elif n.isscalar(oversampling_factor):
-        oversampling_factor = n.zeros(len(v), float) + oversampling_factor
+    elif np.isscalar(oversampling_factor):
+        oversampling_factor = np.zeros(len(v), float) + oversampling_factor
 
-    t = n.array([])
+    t = np.array([])
     for jj in range(len(v)):
         if dt is None:
             dt = v[jj+1] - v[jj]
-        ti = n.arange(v[jj] - dt * (oversampling_factor[jj] - 1) /
+        ti = np.arange(v[jj] - dt * (oversampling_factor[jj] - 1) /
                       (2 * oversampling_factor[jj]),
                       v[jj] + dt * (oversampling_factor[jj] - 1) /
                       (2 * oversampling_factor[jj]) +
                       dt / (2 * oversampling_factor[jj]),
                       dt / oversampling_factor[jj])
-        t = n.concatenate((t, ti))
+        t = np.concatenate((t, ti))
 
     return t
 
@@ -94,26 +94,26 @@ def oversample_time(t, texp=None, dt=None, oversampling_factor=None):
     oversampled time vector with timescale of dt or by a factor of
     oversampling_factor
     """
-    t = n.array(t, float)
-    if texp is not None and n.isscalar(texp):
-        texp = n.zeros(len(t), float) + texp
+    t = np.array(t, float)
+    if texp is not None and np.isscalar(texp):
+        texp = np.zeros(len(t), float) + texp
     elif texp is not None and len(texp) != len(t):
         raise IOError('Inputs arguments t and texp should have the same length')
     elif texp is not None:
-        texp = n.array(texp, float)
+        texp = np.array(texp, float)
     elif texp is None and oversampling_factor is not None:
         return oversample_time_notexp(t, oversampling_factor)
     else:
         raise IOError('Input argument texp or oversampling_factor should be at '
                       'least provided')
 
-    if oversampling_factor is not None and n.isscalar(oversampling_factor):
-        oversampling_factor = n.zeros(len(texp), int) + oversampling_factor
+    if oversampling_factor is not None and np.isscalar(oversampling_factor):
+        oversampling_factor = np.zeros(len(texp), int) + oversampling_factor
     elif oversampling_factor is not None and len(oversampling_factor) != len(t):
         raise IOError('Inputs arguments t and oversampling_factor should have '
                       'the same length')
     elif oversampling_factor is not None:
-        oversampling_factor = n.array(oversampling_factor, int)
+        oversampling_factor = np.array(oversampling_factor, int)
 
     if oversampling_factor is not None and any(oversampling_factor) < 1:
         raise IOError('Any elements of input argument oversampling_factor '
@@ -121,7 +121,7 @@ def oversample_time(t, texp=None, dt=None, oversampling_factor=None):
     elif dt is not None and dt >= any(texp):
         raise IOError('Oversampling timescale dt ({0}) should be equal or '
                       'smaller than any elements of '
-                      'texp ({1})'.format(dt, n.min(texp)))
+                      'texp ({1})'.format(dt, np.min(texp)))
 
     if oversampling_factor is None and dt is None:
         raise IOError('Either oversampling factor or oversampling timescale dt '
@@ -140,7 +140,7 @@ def oversample_time(t, texp=None, dt=None, oversampling_factor=None):
             elif n_sample < 2:
                 tt.append(t[i])
             else:
-                tt.append(n.linspace(t[i] - texp[i] / 2. / 86400.,
+                tt.append(np.linspace(t[i] - texp[i] / 2. / 86400.,
                                      t[i] + texp[i] / 2. / 86400., n_sample))
     elif oversampling_factor is not None:
         for i in range(len(t)):
@@ -149,10 +149,10 @@ def oversample_time(t, texp=None, dt=None, oversampling_factor=None):
             elif oversampling_factor[i] == 1:
                 tt.append(t[i])
             else:
-                tt.append(n.linspace(t[i]-texp[i]/2./86400.,
+                tt.append(np.linspace(t[i]-texp[i]/2./86400.,
                                      t[i]+texp[i]/2./86400.,
                                      oversampling_factor[i]))
-    return n.hstack(tt)
+    return np.hstack(tt)
 
 
 def readdata(input_dict):
@@ -207,7 +207,7 @@ def readdata(input_dict):
                     datadict[key]['data'][fmt] = [elem, ]
 
         for dd in datadict[key]['data']:
-            datadict[key]['data'][dd] = n.array(datadict[key]['data'][dd])
+            datadict[key]['data'][dd] = np.array(datadict[key]['data'][dd])
 
         if checksampling:
             if 'texp' in datadict[key]:

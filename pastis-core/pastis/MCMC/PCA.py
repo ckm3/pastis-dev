@@ -1,7 +1,7 @@
 ###
 # FUNCTIONS FOR PRINCIPAL COMPONENT ANALYSIS OF PARAMETERS
 ###
-import numpy as n
+import numpy as np
 import scipy
 
 
@@ -17,17 +17,17 @@ def get_covariance_matrix(C, bi=0, iteration=0):
         bi = 0
 
     # Construct array containing values of jumping parameters
-    V = n.zeros((len(C.jumpind), iteration - bi))
+    V = np.zeros((len(C.jumpind), iteration - bi))
     for ii, jj in enumerate(C.jumpind):
         V[ii] = C.values[bi: iteration, jj]
 
         
     # Subtract mean from each parameter, and trim burn-in period
-    meanV = n.mean(V, axis = 1)
+    meanV = np.mean(V, axis = 1)
     VV = (V.T - meanV).T
     
     # Compute the covariance matrix S and its eigenvalues and vectors
-    return n.cov(VV), meanV 
+    return np.cov(VV), meanV 
 
 
 def run_pca(S, iteration = 0):
@@ -40,11 +40,11 @@ def run_pca(S, iteration = 0):
     w, eigv = scipy.linalg.eigh( S )
 
     # Sort eigenvector matrix according to eigenvalue values
-    ind = n.argsort(w)[::-1]
+    ind = np.argsort(w)[::-1]
     coeff = eigv[:, ind]
 
     # Return transposition of coefficient matrix 
-    return coeff.T, n.abs(w[ind])
+    return coeff.T, np.abs(w[ind])
 
 
 def estimate_propscale_pca(C, M, S):
@@ -60,8 +60,8 @@ def estimate_propscale_pca(C, M, S):
     for ind in C.jumpind:
         sx.append(X[ind].propscale)
 
-    sx = n.array(sx)
-    sv = n.zeros(sx.shape)
+    sx = np.array(sx)
+    sv = np.zeros(sx.shape)
 
     for i, jj in enumerate(C.jumpind):
         #sv[i] = n.sum((M[i]*sx)**2)
@@ -74,4 +74,4 @@ def estimate_propscale_pca(C, M, S):
 
         #X[jj].PCApropscale = n.sqrt(sv[i])
     
-    return n.sqrt(sv)
+    return np.sqrt(sv)

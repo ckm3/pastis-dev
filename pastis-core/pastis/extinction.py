@@ -1,5 +1,5 @@
 import os
-import numpy as n
+import numpy as np
 from scipy import interpolate
 
 from .paths import idlexec, libpath
@@ -104,8 +104,8 @@ def ext_law(llambda, Rv = 3.1):
     extlaw = extlaw.astype('float64')
     
     x0 = 4.596  
-    gamma = 0.99	
-    c3 = 3.23	
+    gamma = 0.99 
+    c3 = 3.23 
     c4 = 0.41    
     c2 = -0.824 + 4.717/Rv
     c1 = 2.030 - 3.007*c2
@@ -114,21 +114,21 @@ def ext_law(llambda, Rv = 3.1):
     # Compute UV portion of A(lambda)/E(B-V) curve using FM fitting function and 
     # R-dependent coefficients
     xcutuv = 10000.0/2700.0
-    xspluv = 10000.0/n.array([2700.0,2600.0])
+    xspluv = 10000.0/np.array([2700.0,2600.0])
     
-    iuv = n.where(x >= xcutuv)
-    iopir = n.where(x < xcutuv)
+    iuv = np.where(x >= xcutuv)
+    iopir = np.where(x < xcutuv)
     
     #iuv = where(x ge xcutuv, N_UV, complement = iopir, Ncomp = Nopir)
 
     if len(iuv) > 0:
-        xuv = n.concatenate((xspluv, x[iuv]))
+        xuv = np.concatenate((xspluv, x[iuv]))
     else:
         xuv = xspluv
 
     yuv = c1  + c2*xuv
     yuv = yuv + c3*xuv**2/((xuv**2-x0**2)**2 +(xuv*gamma)**2)
-    xuvv = n.where(xuv > 5.9, xuv, 5.9 + xuv*0.0)
+    xuvv = np.where(xuv > 5.9, xuv, 5.9 + xuv*0.0)
     yuv = yuv + c4*(0.5392*(xuvv-5.9)**2+0.05644*(xuvv-5.9)**3)
     yuv = yuv + Rv
     yspluv  = yuv[0:2]
@@ -139,18 +139,18 @@ def ext_law(llambda, Rv = 3.1):
     # Compute optical portion of A(lambda)/E(B-V) curve
     # using cubic spline anchored in UV, optical, and IR
 
-    xsplopir = n.concatenate(([0,],10000.0/n.array([26500.0,12200.0,6000.0,5470.0,4670.0,4110.0])))
-    ysplir   = n.array([0.0,0.26469,0.82925])*Rv/3.1 
-    ysplop   = [n.poly1d([2.13572e-04, 1.00270, -4.22809e-01 ])(Rv), n.poly1d([-7.35778e-05, 1.00216, -5.13540e-02])(Rv),
-                n.poly1d([-3.32598e-05, 1.00184, 7.00127e-01])(Rv),
-                n.poly1d([-4.45636e-05, 7.97809e-04, -5.46959e-03, 1.01707, 1.19456])(Rv)
+    xsplopir = np.concatenate(([0,],10000.0/np.array([26500.0,12200.0,6000.0,5470.0,4670.0,4110.0])))
+    ysplir   = np.array([0.0,0.26469,0.82925])*Rv/3.1 
+    ysplop   = [np.poly1d([2.13572e-04, 1.00270, -4.22809e-01 ])(Rv), np.poly1d([-7.35778e-05, 1.00216, -5.13540e-02])(Rv),
+                np.poly1d([-3.32598e-05, 1.00184, 7.00127e-01])(Rv),
+                np.poly1d([-4.45636e-05, 7.97809e-04, -5.46959e-03, 1.01707, 1.19456])(Rv)
                 ]
 
-    ysplopir = n.concatenate([ysplir, ysplop])
+    ysplopir = np.concatenate([ysplir, ysplop])
     
     if len(iopir) > 0:
-        xt = n.concatenate([xsplopir,xspluv])
-        yt = n.concatenate([ysplopir,yspluv])
+        xt = np.concatenate([xsplopir,xspluv])
+        yt = np.concatenate([ysplopir,yspluv])
         tck = interpolate.splrep(xt, yt, k = 3)
         extlaw[iopir] = interpolate.splev(x[iopir], tck)
     

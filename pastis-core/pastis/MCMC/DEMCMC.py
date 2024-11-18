@@ -1,4 +1,4 @@
-import numpy as n
+import numpy as np
 import scipy
 import random
 import types
@@ -61,12 +61,12 @@ def DEMCMC(input_dict, datadict, customprior_dict, N, Nchains,
 
 
     ## DEFINE GRAND STATE XX
-    XX = n.zeros((N, Nchains, len(jumpind) + 3))
+    XX = np.zeros((N, Nchains, len(jumpind) + 3))
 
-    priorx = n.zeros(Nchains)
-    logLx =  n.zeros(Nchains)
+    priorx = np.zeros(Nchains)
+    logLx =  np.zeros(Nchains)
 
-    accepted = n.zeros(Nchains)
+    accepted = np.zeros(Nchains)
 
     ti = time.time()
     for j in range(Nchains):
@@ -123,7 +123,7 @@ def DEMCMC(input_dict, datadict, customprior_dict, N, Nchains,
 
     XX[0, :, -3] = priorx
     XX[0, :, -2] = logLx
-    XX[0, :, -1] = logLx*log10(e) + n.log10(priorx)
+    XX[0, :, -1] = logLx*log10(e) + np.log10(priorx)
 
 
     N = int(N)
@@ -157,12 +157,12 @@ def DEMCMC(input_dict, datadict, customprior_dict, N, Nchains,
             """
            
             ### Pick the two chains that will construct the jump vector
-            chains = n.concatenate((n.arange(j), n.arange(j + 1, Nchains)))
+            chains = np.concatenate((np.arange(j), np.arange(j + 1, Nchains)))
             random.shuffle(chains)
             c1, c2 = chains[:2]
 
             ## Construct proposal vector
-            xp = XX[i - 1, j, :-3] + gamfactor*(XX[i - 1, c1, :-3] - XX[i - 1, c2, :-3]) + n.random.randn(len(XX[i - 1, j, :-3]))*XX[i - 1, j, :-3]*randfactor
+            xp = XX[i - 1, j, :-3] + gamfactor*(XX[i - 1, c1, :-3] - XX[i - 1, c2, :-3]) + np.random.randn(len(XX[i - 1, j, :-3]))*XX[i - 1, j, :-3]*randfactor
 
             for kk, ii in enumerate(jumpind):
                 labeldict[labeldict.keys()[ii]].set_value(xp[kk])
@@ -192,13 +192,13 @@ def DEMCMC(input_dict, datadict, customprior_dict, N, Nchains,
 
             except (EvolTrackError, OutofIsochroneError):
             #print('One of the requested stars cannot be constructed because it is outside the limits of the evolution tracks.')
-	    ## Instead of printing, add number of step to TrackError list
+     ## Instead of printing, add number of step to TrackError list
                 reject = True
 
             except RuntimeError:
                 print('Runtime Error. Probably and error in Qhull. Rejecting step.')
                 reject = True
-	    
+     
             except EBOPparamError as eboperr:
                 
                 #print('Parameter outside limits for JKTEBOP; error message: %s'\
@@ -220,7 +220,7 @@ def DEMCMC(input_dict, datadict, customprior_dict, N, Nchains,
                 try:
                     # If Metropolis ratio overflows, compute rather log(r)
                     # and check that the ratio is greater than 1
-                    logr = log(priory) - log(XX[i - 1, j, -3]) \
+                    logr = log(priory) - log(XX[i - 1, j, -3])\
                         + beta*(logLy - XX[i - 1, j, -2])
 
                     if logr >= 0.0:
@@ -250,7 +250,7 @@ def DEMCMC(input_dict, datadict, customprior_dict, N, Nchains,
                 XX[i, j, :-3] = xp
                 XX[i, j, -3] = priory
                 XX[i, j, -2] = logLy
-                XX[i, j, -1] = logLy*log10(e) + n.log10(priory)
+                XX[i, j, -1] = logLy*log10(e) + np.log10(priory)
                 accepted[j] = accepted[j] + 1
             else:
                 XX[i, j, :] = XX[i - 1, j, :]
@@ -275,7 +275,7 @@ def DEMCMC(input_dict, datadict, customprior_dict, N, Nchains,
         f = open('/data/PASTIS/resultfiles/testDEMC/%stestDEMC_nchains%d_gamma%.4f_%s.dat'%(comment, Nchains, gamfactor, dt), 'w')
         import pickle
         pickle.dump([XX[::10,:, :],
-                     accepted, n.array(labeldict.keys())[jumpind]], f)
+                     accepted, np.array(labeldict.keys())[jumpind]], f)
         f.close()
     
-    return XX, accepted, n.array(labeldict.keys())[jumpind]
+    return XX, accepted, np.array(labeldict.keys())[jumpind]

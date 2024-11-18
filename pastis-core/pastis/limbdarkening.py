@@ -1,6 +1,6 @@
 import sys
 import warnings
-import numpy as n
+import numpy as np
 from scipy import interpolate
 
 from .extlib import LDdict
@@ -16,7 +16,7 @@ def initialize_limbdarkening(pbands, ATMmodel="A", LDCfile=LDdict["Claret2011_wT
     global LDCs
 
     def LDCs(logg, teff, z, band):
-        return n.array(
+        return np.array(
             [LDCinterpol[band][0](logg, teff, z), LDCinterpol[band][1](logg, teff, z)]
         )
 
@@ -74,17 +74,17 @@ def interpol_LD(LDCfile, photbands=["Kepler", "CoRoT"], ATMmodel="A"):
     nrecord = len(lines[32:-2])
 
     # Initialize float arrays
-    logg = n.zeros((nrecord,), float)
-    Teff = n.zeros((nrecord,), float)
-    z = n.zeros((nrecord,), float)
-    microturb = n.zeros((nrecord,), float)
-    a = n.zeros((nrecord,), float)
-    b = n.zeros((nrecord,), float)
+    logg = np.zeros((nrecord,), float)
+    Teff = np.zeros((nrecord,), float)
+    z = np.zeros((nrecord,), float)
+    microturb = np.zeros((nrecord,), float)
+    a = np.zeros((nrecord,), float)
+    b = np.zeros((nrecord,), float)
 
     # Initialize string arrays
-    band = n.zeros((nrecord,), "U8")
-    method = n.zeros((nrecord,), "U1")
-    model = n.zeros((nrecord,), "U1")
+    band = np.zeros((nrecord,), "U8")
+    method = np.zeros((nrecord,), "U1")
+    model = np.zeros((nrecord,), "U1")
 
     ## Read variables
     for i, line in enumerate(lines[32:-2]):
@@ -97,7 +97,7 @@ def interpol_LD(LDCfile, photbands=["Kepler", "CoRoT"], ATMmodel="A"):
             print(ll)
 
     ## Prepare conditions to select a given photometric band
-    condMT = n.equal(microturb, 2.0)
+    condMT = np.equal(microturb, 2.0)
     assert sum(condMT) > 0, "No entries for microturbulence = 2.0"
     condMOD = model == ATMmodel
     assert sum(condMOD) > 0, "No entries for model {}".format(ATMmodel)
@@ -107,7 +107,7 @@ def interpol_LD(LDCfile, photbands=["Kepler", "CoRoT"], ATMmodel="A"):
     assert sum(cond1) > 0
 
     LDCs = {}
-    for ii, photband in enumerate(n.sort(photbands)):
+    for ii, photband in enumerate(np.sort(photbands)):
         if ii == 0:
             sys.stdout.write("... band: %-12s" % photband)
         else:
@@ -116,7 +116,7 @@ def interpol_LD(LDCfile, photbands=["Kepler", "CoRoT"], ATMmodel="A"):
 
         ##
         try:
-            cond2 = n.logical_and(cond1, band == trad_to_claret[photband])
+            cond2 = np.logical_and(cond1, band == trad_to_claret[photband])
         except KeyError:
             warnings.warn(
                 "Warning! Photband {} could not be initialised. "
@@ -125,42 +125,42 @@ def interpol_LD(LDCfile, photbands=["Kepler", "CoRoT"], ATMmodel="A"):
             )
             continue
 
-        loggc = n.compress(cond2, logg)
-        teffc = n.compress(cond2, Teff)
-        zc = n.compress(cond2, z)
-        ac = n.compress(cond2, a)
-        bc = n.compress(cond2, b)
+        loggc = np.compress(cond2, logg)
+        teffc = np.compress(cond2, Teff)
+        zc = np.compress(cond2, z)
+        ac = np.compress(cond2, a)
+        bc = np.compress(cond2, b)
 
         ## Create regular grid of values
-        loggu = n.unique(loggc)
-        teffu = n.unique(teffc)
-        zu = n.unique(zc)
+        loggu = np.unique(loggc)
+        teffu = np.unique(teffc)
+        zu = np.unique(zc)
 
         length = len(loggu) * len(teffu) * len(zu)
 
-        logg_reg = n.zeros((length,), float)
-        teff_reg = n.zeros((length,), float)
-        z_reg = n.zeros((length,), float)
-        a_reg = n.zeros((length,), float)
-        b_reg = n.zeros((length,), float)
+        logg_reg = np.zeros((length,), float)
+        teff_reg = np.zeros((length,), float)
+        z_reg = np.zeros((length,), float)
+        a_reg = np.zeros((length,), float)
+        b_reg = np.zeros((length,), float)
 
         i = 0
         impossible_combinations = []
         for loggi in loggu:
-            condlogg = n.less(n.abs(loggc - loggi), 1e-3)
+            condlogg = np.less(np.abs(loggc - loggi), 1e-3)
             for teffi in teffu:
-                condteff = n.less(n.abs(teffc - teffi), 0.1)
-                cond_loggteff = n.logical_and(condlogg, condteff)
+                condteff = np.less(np.abs(teffc - teffi), 0.1)
+                cond_loggteff = np.logical_and(condlogg, condteff)
                 for zi in zu:
-                    condz = n.less(n.abs(zc - zi), 1e-3)
-                    condAll = n.logical_and(cond_loggteff, condz)
+                    condz = np.less(np.abs(zc - zi), 1e-3)
+                    condAll = np.logical_and(cond_loggteff, condz)
 
                     logg_reg[i] = loggi
                     teff_reg[i] = teffi
                     z_reg[i] = zi
 
-                    aa = n.compress(condAll, ac)
-                    bb = n.compress(condAll, bc)
+                    aa = np.compress(condAll, ac)
+                    bb = np.compress(condAll, bc)
 
                     if len(aa) != 0 and len(bb) != 0:
                         a_reg[i] = aa
@@ -169,9 +169,9 @@ def interpol_LD(LDCfile, photbands=["Kepler", "CoRoT"], ATMmodel="A"):
                         ## Complete grid
 
                         # Get typical step in each variable
-                        dlogg = n.mean(n.diff(loggu))
-                        dteff = n.mean(n.diff(teffu))
-                        dz = n.mean(n.diff(zu))
+                        dlogg = np.mean(np.diff(loggu))
+                        dteff = np.mean(np.diff(teffu))
+                        dz = np.mean(np.diff(zu))
 
                         # Compute the normalized distance to all points in file
                         dist2 = (
@@ -181,7 +181,7 @@ def interpol_LD(LDCfile, photbands=["Kepler", "CoRoT"], ATMmodel="A"):
                         )
 
                         # Choose the closest point in the grid
-                        ind = n.argsort(dist2)[0]
+                        ind = np.argsort(dist2)[0]
 
                         a_reg[i] = ac[ind]
                         b_reg[i] = bc[ind]
@@ -189,7 +189,7 @@ def interpol_LD(LDCfile, photbands=["Kepler", "CoRoT"], ATMmodel="A"):
                     i += 1
 
         # invalues = n.array((loggc, Teffc, zc)).transpose()
-        invalues = n.array((logg_reg, teff_reg, z_reg)).transpose()
+        invalues = np.array((logg_reg, teff_reg, z_reg)).transpose()
 
         # Generate interpolated functions
         a_interp = interpolate.LinearNDInterpolator(invalues, a_reg)

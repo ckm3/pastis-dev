@@ -96,7 +96,7 @@ def make_solution_file(chain, pastisfile=None, BI=0.2, best=True,
 
     elif isinstance(chain, Chain) or isinstance(chain, dict) or isinstance(
             chain, VDchain) or isinstance(chain, list) or isinstance(chain,
-                                                                     n.array):
+                                                                     np.array):
         C = chain
         foutname = pastisfile.replace('.pastis', '.solution')
         foutname = foutname.replace('configfiles', 'resultfiles')
@@ -227,9 +227,9 @@ def confidence_intervals(C, q=0.6827, hdi=None, nbins=50, burnin=0.0,
 
     # Try to compute index of MAP
     try:
-        mapindex = n.argmax(vd['posterior'])
+        mapindex = np.argmax(vd['posterior'])
     except KeyError:
-        mapindex = n.nan
+        mapindex = np.nan
         if report is 'map':
             print('Posterior not given, will return posterior mode.')
             report = 'mode'
@@ -248,31 +248,31 @@ def confidence_intervals(C, q=0.6827, hdi=None, nbins=50, burnin=0.0,
     outputdict = {}
 
     # Find index after burn in.
-    istart = int(n.round(len(vd[vd.keys()[0]]) * burnin))
+    istart = int(np.round(len(vd[vd.keys()[0]]) * burnin))
 
-    for param in n.sort(vd.keys()):
+    for param in np.sort(vd.keys()):
 
         # Get median and mode, and dispersion
-        statdict = {'median': n.median(vd[param][istart:]),
-                    'mean': n.mean(vd[param][istart:]),
-                    'sigma': n.std(vd[param][istart:]),
-                    'min': n.min(vd[param][istart:]),
-                    'max': n.max(vd[param][istart:])
+        statdict = {'median': np.median(vd[param][istart:]),
+                    'mean': np.mean(vd[param][istart:]),
+                    'sigma': np.std(vd[param][istart:]),
+                    'min': np.min(vd[param][istart:]),
+                    'max': np.max(vd[param][istart:])
                     }
 
         # Try to add MAP value
         try:
             statdict['map'] = vd[param][mapindex]
         except IndexError:
-            statdict['map'] = n.nan
+            statdict['map'] = np.nan
 
         # Compute histogram for all cases that require it.
         if report is 'mode' or not percentile or hdi is not None:
             # Compute histogram
-            m, bins = n.histogram(vd[param][istart:], nbins, normed=True)
-            x = bins[:-1] + 0.5 * n.diff(bins)
+            m, bins = np.histogram(vd[param][istart:], nbins, normed=True)
+            x = bins[:-1] + 0.5 * np.diff(bins)
 
-            modevalue = x[n.argmax(m)]
+            modevalue = x[np.argmax(m)]
 
             statdict['mode'] = modevalue
 
@@ -281,15 +281,15 @@ def confidence_intervals(C, q=0.6827, hdi=None, nbins=50, burnin=0.0,
         ###
         if percentile:
             # Method independent of bin size.
-            lower_limit = n.percentile(vd[param][istart:], 100 * qmin)
-            upper_limit = n.percentile(vd[param][istart:], 100 * qmax)
+            lower_limit = np.percentile(vd[param][istart:], 100 * qmin)
+            upper_limit = np.percentile(vd[param][istart:], 100 * qmax)
 
         else:
             # Original method
-            ci = m.astype(float).cumsum() / n.sum(m)
+            ci = m.astype(float).cumsum() / np.sum(m)
 
             if not cumulative:
-                imin1 = n.argwhere(n.less(ci, qmin))
+                imin1 = np.argwhere(np.less(ci, qmin))
 
                 if len(imin1) >= 1:
                     imin1 = float(imin1.max())
@@ -302,7 +302,7 @@ def confidence_intervals(C, q=0.6827, hdi=None, nbins=50, burnin=0.0,
             else:
                 lower_limit = 0.0
 
-            imax1 = float(n.argwhere(n.less(ci, qmax)).max())
+            imax1 = float(np.argwhere(np.less(ci, qmax)).max())
             imax2 = imax1 + 1.0
             upper_limit = scipy.interp(qmax, [ci[imax1], ci[imax2]],
                                        [x[imax1], x[imax2]])
@@ -376,8 +376,8 @@ def confidence_intervals(C, q=0.6827, hdi=None, nbins=50, burnin=0.0,
                       'sigma = {sigma:.1e})'.format(**formatdict))
 
             else:
-                hcr = n.round(hc, ndecimal)
-                lcr = n.round(lc, ndecimal)
+                hcr = np.round(hc, ndecimal)
+                lcr = np.round(lc, ndecimal)
                 formatdict = {'param': param, 'value': reportvalue,
                               'ndec': int(ndecimal), 'pmsym': pmsym,
                               'err+': hcr, 'err-': lcr}
@@ -394,7 +394,7 @@ def confidence_intervals(C, q=0.6827, hdi=None, nbins=50, burnin=0.0,
 
         # Compute HDI
         if hdi is not None:
-            hdi = n.atleast_1d(hdi)
+            hdi = np.atleast_1d(hdi)
 
             for hdii in hdi:
                 hdints = compute_hdi(bins, m, q=hdii)
@@ -406,7 +406,7 @@ def confidence_intervals(C, q=0.6827, hdi=None, nbins=50, burnin=0.0,
                     if jj > 0:
                         hdistr += ' U '
 
-                    if n.isnan(interval[0]):
+                    if np.isnan(interval[0]):
                         continue
                     hdistr += (
                         '[{0:.' + str(ndecimal + 1) + 'f}, {1:.' + str(
@@ -476,7 +476,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
 
     # Add fixed and jump parameters to auxiliary dicitionary dvd
     for pp in fixed_params:
-        dvd[pp] = n.zeros(N) + dd[1][pp.split('_')[0]][pp.split('_')[1]][0]
+        dvd[pp] = np.zeros(N) + dd[1][pp.split('_')[0]][pp.split('_')[1]][0]
 
     for pp in jump_params:
         dvd[pp] = vd[pp][::sampling]
@@ -489,7 +489,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
     indtarg = map(string.find, sorted_objs, ['Target'] * len(sorted_objs))
 
     # Target and/or Host stars are present
-    if any(n.array(indhost) != -1) or any(n.array(indtarg) != -1):
+    if any(np.array(indhost) != -1) or any(np.array(indtarg) != -1):
         # Write initialization condition
         condtarg = 'verticeT' in iso.__dict__
     else:
@@ -500,7 +500,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
     indblend = map(string.find, sorted_objs, ['Blend'] * len(sorted_objs))
 
     # Blend stars are present
-    if any(n.array(indblend) != -1):
+    if any(np.array(indblend) != -1):
         # Write initialization condition
         condblend = 'verticesY' in iso.__dict__
     else:
@@ -528,26 +528,26 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                 y = dvd[oo + '_logg']
 
             # Include arrays to hold derived parameters in dvd
-            dvd[oo + '_mact'] = n.zeros(N)
-            dvd[oo + '_R'] = n.zeros(N)
-            dvd[oo + '_logL'] = n.zeros(N)
+            dvd[oo + '_mact'] = np.zeros(N)
+            dvd[oo + '_R'] = np.zeros(N)
+            dvd[oo + '_logL'] = np.zeros(N)
             # Theoretical limb darkening
             for filt in filters:
-                dvd[oo + '_ua_theo_' + filt] = n.zeros(N)
-                dvd[oo + '_ub_theo_' + filt] = n.zeros(N)
+                dvd[oo + '_ua_theo_' + filt] = np.zeros(N)
+                dvd[oo + '_ub_theo_' + filt] = np.zeros(N)
 
             if 'Target' in oo:
-                dvd[oo + '_logage'] = n.zeros(N)
-                dvd[oo + '_dens'] = n.zeros(N)
+                dvd[oo + '_logage'] = np.zeros(N)
+                dvd[oo + '_dens'] = np.zeros(N)
 
             elif 'Blend' in oo:
-                dvd[oo + '_teff'] = n.zeros(N)
-                dvd[oo + '_dens'] = n.zeros(N)
-                dvd[oo + '_logg'] = n.zeros(N)
+                dvd[oo + '_teff'] = np.zeros(N)
+                dvd[oo + '_dens'] = np.zeros(N)
+                dvd[oo + '_logg'] = np.zeros(N)
 
             elif 'Host' in oo:
-                dvd[oo + '_logage'] = n.zeros(N)
-                dvd[oo + '_logg'] = n.zeros(N)
+                dvd[oo + '_logage'] = np.zeros(N)
+                dvd[oo + '_logg'] = np.zeros(N)
 
             for i in range(N):
 
@@ -570,7 +570,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                 elif 'Blend' in oo:
 
                     # Interpolate track
-                    logT, logg, logL, Mact = \
+                    logT, logg, logL, Mact =\
                         iso.get_stellarparams_target(
                             dvd[oo + '_z'][i],
                             dvd[oo + '_logage'][i],
@@ -593,7 +593,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                     alphaS = dvd[oo + '_alphaS'][i]
                 except KeyError:
                     alphaS = 0.0
-                R = n.sqrt(
+                R = np.sqrt(
                     L * (5777.0 / dvd[oo + '_teff'][i]) ** 4.0 / (1 - alphaS))
                 dvd[oo + '_R'][i] = R
 
@@ -605,7 +605,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                     g_SI = G * mm / rr ** 2
                     g_cgs = g_SI * 1e2
 
-                    dvd[oo + '_logg'][i] = n.log10(g_cgs)
+                    dvd[oo + '_logg'][i] = np.log10(g_cgs)
 
                 # Compute stellar density for blends and targets
                 elif 'Blend' in oo or 'Target' in oo:
@@ -613,8 +613,8 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
 
                 # Compute theoretical limb darkening
                 for filt in filters:
-                    dvd[oo + '_ua_theo_' + filt][i], \
-                    dvd[oo + '_ub_theo_' + filt][i] = \
+                    dvd[oo + '_ua_theo_' + filt][i],\
+                    dvd[oo + '_ub_theo_' + filt][i] =\
                         get_LD(dvd[oo + '_teff'][i], dvd[oo + '_logg'][i],
                                dvd[oo + '_z'][i], filt)
 
@@ -681,7 +681,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                         y = dvd[oo + '_incl']
                         use_b = False
 
-                    mact = n.zeros(N)
+                    mact = np.zeros(N)
 
                     for i in range(N):
                         try:
@@ -722,7 +722,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
 
                 # Compute star-planet distance at transit center
                 rtran = dvd[oo + '_ar'] * (1 - ecc ** 2) / (
-                    1 + ecc * n.cos(nu0))
+                    1 + ecc * np.cos(nu0))
 
                 ##
                 ## Compute b if inclination was a jump parameter
@@ -730,7 +730,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                 if oo + '_incl' in dvd.keys() and not oo + '_b' in dvd.keys():
 
                     ## Compute b
-                    dvd[oo + '_b'] = rtran * n.cos(
+                    dvd[oo + '_b'] = rtran * np.cos(
                         dvd[oo + '_incl'] * pi / 180.0)
                     incl = dvd[oo + '_incl'] * pi / 180.0
 
@@ -739,7 +739,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                 ##
                 elif oo + '_b' in dvd.keys():
                     cosi = dvd[oo + '_b'] / rtran
-                    incl = n.arccos(cosi)  # in radians
+                    incl = np.arccos(cosi)  # in radians
                     dvd[oo + '_incl'] = incl * 180.0 / pi  # in degrees
 
                 if oo + '_q' in dvd.keys():
@@ -747,8 +747,8 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                     ## Compute companion mass for case where q was given.
                     ##
                     mact = k_ms * (per_s * Ms ** 2 * (1 + q) ** 2 / (
-                        2 * pi * G)) ** (1. / 3.) * \
-                           n.sqrt(1 - ecc ** 2) / n.sin(incl)
+                        2 * pi * G)) ** (1. / 3.) *\
+                           np.sqrt(1 - ecc ** 2) / np.sin(incl)
 
                     dvd[oo + '_mact'] = mact / Msun
                     dvd[oo + '_Mp'] = mact / Mjup
@@ -757,9 +757,9 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                 ## Compute impact parameter at secondary eclipe
                 ##
                 nuS = 3 * pi / 2.0 - omega
-                rsec = dvd[oo + '_ar'] * (1 - ecc ** 2) / (1 + ecc * n.cos(nuS))
+                rsec = dvd[oo + '_ar'] * (1 - ecc ** 2) / (1 + ecc * np.cos(nuS))
 
-                dvd[oo + '_bsec'] = rsec * n.cos(dvd[oo + '_incl'] * pi / 180.0)
+                dvd[oo + '_bsec'] = rsec * np.cos(dvd[oo + '_incl'] * pi / 180.0)
 
                 ##
                 ## Compute radius, density, and surface gravity
@@ -770,7 +770,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                     dvd[oo + '_Rp'] = Rs * kr * Rsun2Rjup
                     dvd[oo + '_dens'] = dvd[oo + '_Mp'] / dvd[
                                                               oo + '_Rp'] ** 3  # Jupiter units
-                    dvd[oo + '_logg'] = n.log10(
+                    dvd[oo + '_logg'] = np.log10(
                         1e2 * G * dvd[oo + '_Mp'] * Mjup * (
                             dvd[oo + '_Rp'] * Rjup) ** (-2.0))
 
@@ -790,11 +790,11 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
 
                     # Compute geometrical factor Z
                     # Z = n.sqrt( 1 - (rtran_m * n.cos(incl))**2 / (Rs_m + Rp_m)**2 )
-                    Z = n.sqrt(1 - dvd[oo + '_b'] ** 2 / (1 + kr) ** 2)
+                    Z = np.sqrt(1 - dvd[oo + '_b'] ** 2 / (1 + kr) ** 2)
 
                     # Duration
-                    D = 2 * Z * Rs_m * (1 + kr) * n.sqrt(1 - ecc ** 2) * \
-                        (1 + ecc * n.cos(nu0)) ** (-1) * \
+                    D = 2 * Z * Rs_m * (1 + kr) * np.sqrt(1 - ecc ** 2) *\
+                        (1 + ecc * np.cos(nu0)) ** (-1) *\
                         (per_s / (2 * pi * G * Ms * (1 + q))) ** (1. / 3.)
 
                     dvd[oo + '_duration'] = D / 3600.0  # In hours
@@ -807,7 +807,7 @@ def compute_derived_params(vd, pastisfile, sampling=1, **kwargs):
                     teff = dvd[oos + '_teff']
                     a_rsun = dvd[oo + '_a'] * au / Rsun
 
-                    teq = teff * (1 - albedo) ** (1. / 4.) * n.sqrt(
+                    teq = teff * (1 - albedo) ** (1. / 4.) * np.sqrt(
                         0.5 * Rs / a_rsun)
                     dvd[oo + '_teq'] = teq
 
@@ -893,7 +893,7 @@ def get_best_values(C, BI=0.0, bestparam='posterior'):
         except KeyError:
             print('Warning! {s} not found in chain.'.format(s=bestparam))
 
-    elif isinstance(C, list) or isinstance(C, n.array):
+    elif isinstance(C, list) or isinstance(C, np.array):
         singlechain = False
 
     else:
@@ -904,12 +904,12 @@ def get_best_values(C, BI=0.0, bestparam='posterior'):
         # Find for which chain the maximum posterior occurs
         for i, vd in enumerate(C):
             if i == 0:
-                maxpost = n.max(vd._value_dict[bestparam])
+                maxpost = np.max(vd._value_dict[bestparam])
                 maxind = 0
                 continue
 
-            if n.max(vd._value_dict[bestparam]) > maxpost:
-                maxpost = n.max(vd._value_dict[bestparam])
+            if np.max(vd._value_dict[bestparam]) > maxpost:
+                maxpost = np.max(vd._value_dict[bestparam])
                 maxind = i
 
         # Get chain containing best value
@@ -917,8 +917,8 @@ def get_best_values(C, BI=0.0, bestparam='posterior'):
         N = len(vd[vd.keys()[0]])
         y = vd[bestparam]
 
-    indi = n.int(n.round(BI * N))
-    indmax = n.argmax(y[indi:])
+    indi = np.int(np.round(BI * N))
+    indmax = np.argmax(y[indi:])
 
     for key in vd.keys():
         skey = key.split('_')
@@ -988,8 +988,8 @@ def get_median_values(C, BI=0.0):
         print('Input not recognized.')
         return
 
-    indi = n.round(BI * N)
-    indmax = n.argmax(y[indi:])
+    indi = np.round(BI * N)
+    indmax = np.argmax(y[indi:])
 
     for key in vd.keys():
         skey = key.split('_')
@@ -1001,7 +1001,7 @@ def get_median_values(C, BI=0.0):
 
         # For each parameter, take the median of the chain.
         bvi = vd[key][indi:]
-        medianvalues[skey[0]][skey[1]] = [n.median(bvi), ]
+        medianvalues[skey[0]][skey[1]] = [np.median(bvi), ]
 
     return medianvalues
 
@@ -1054,7 +1054,7 @@ def read_chains(target, runid, beta=None):
 
     filenames = []
     vds = []
-    for ffile in n.sort(flist):
+    for ffile in np.sort(flist):
 
         # Filter broken files
         if ffile == 'KOI-189_ALL_FitTargetStar_20120722T18:36:18.mcmc':
@@ -1081,7 +1081,7 @@ def read_chains(target, runid, beta=None):
                     else:
                         betai = float(ffile[indi + 4:])
                 else:
-                    betai = n.nan
+                    betai = np.nan
 
             ## Create VDchain instance
             vdC = VDchain(vd, betai, target, runid, filename=f.name)
@@ -1121,7 +1121,7 @@ def read_chains2(self, flist, beta=[], target=[], runid=[]):
     m = MeterBar.Meter(meterbar, relief='ridge', bd=3)
     m.pack(fill='x')
     m.set(0.0, 'Loading resultfiles...')
-    for i, ffilepath in enumerate(n.sort(flist)):
+    for i, ffilepath in enumerate(np.sort(flist)):
 
         ffile = os.path.split(ffilepath)[1]
 
@@ -1203,9 +1203,9 @@ def merge_chains(vds, BI, CL, N=1e4, pickrandom=False,
 
     # Create dictionary that will contain random samples
     if pickrandom:
-        vdc = dict((kk, n.zeros(N * len(vds))) for kk in vdd.keys())
+        vdc = dict((kk, np.zeros(N * len(vds))) for kk in vdd.keys())
     else:
-        vdc = dict((kk, n.array([])) for kk in vdd.keys())
+        vdc = dict((kk, np.array([])) for kk in vdd.keys())
 
     ## Create list of starting indexes
     try:
@@ -1219,7 +1219,7 @@ def merge_chains(vds, BI, CL, N=1e4, pickrandom=False,
         raise TypeError('BI must be either a float or contain the same number\
 of elements as the input list')
 
-    start_index = n.zeros(len(BI), 'int')
+    start_index = np.zeros(len(BI), 'int')
     for i in range(len(vds)):
         if isinstance(vds[i], dict):
             vdd = vds[i].copy()
@@ -1243,8 +1243,8 @@ of elements as the input list')
         # CL is a float; convert to a list
         CL = [CL] * len(vds)
 
-    inds0 = n.arange(N * len(vds)).astype(int)
-    n.random.shuffle(inds0)
+    inds0 = np.arange(N * len(vds)).astype(int)
+    np.random.shuffle(inds0)
 
     for i, vdi in enumerate(vds):
 
@@ -1269,11 +1269,11 @@ of elements as the input list')
             vd = vdi.get_value_dict()
 
         if pickrandom:
-            inds = n.arange(len(vd[vd.keys()[0]][start_index[i]:]))
+            inds = np.arange(len(vd[vd.keys()[0]][start_index[i]:]))
             if len(inds) < N:
                 raise ValueError(
                     'All elements of the value dicts must have at least N elements.')
-            n.random.shuffle(inds)
+            np.random.shuffle(inds)
 
             for kk in vd.keys():
                 vdc[kk][inds0[i * N:(i + 1) * N]] = vd[kk][start_index[i]:][
@@ -1281,7 +1281,7 @@ of elements as the input list')
 
         else:
             for kk in vd.keys():
-                vdc[kk] = n.concatenate(
+                vdc[kk] = np.concatenate(
                     (vdc[kk], vd[kk][start_index[i]::CL[i]]))
 
     if not isinstance(vdi, dict):
@@ -1367,8 +1367,8 @@ def corrlength(x, step=1, BI=0.2, BO=1.0, widget=False, verbose=True,
     if widget == True:
         verbose = False
 
-    indstart = n.round(len(x) * BI)
-    indend = n.round(len(x) * BO)
+    indstart = np.round(len(x) * BI)
+    indend = np.round(len(x) * BO)
     x = x[indstart: indend]
 
     ## Reduce mean
@@ -1381,8 +1381,8 @@ def corrlength(x, step=1, BI=0.2, BO=1.0, widget=False, verbose=True,
         xx2 = xmean ** 2.0
         den = x2mean - xmean ** 2.0
     #
-    shifts = n.zeros(len(x) / float(step))
-    corr = n.zeros(len(x) / float(step))
+    shifts = np.zeros(len(x) / float(step))
+    corr = np.zeros(len(x) / float(step))
     for j in range(len(corr)):
         #
         if circular:
@@ -1410,12 +1410,12 @@ def corrlength(x, step=1, BI=0.2, BO=1.0, widget=False, verbose=True,
 
         if j > 500.0 and stop:
             # Stop iteration if last 500 points are below 1/e
-            if n.alltrue(n.less(corr[j + 1 - 500: j + 1], 1.0 / e)):
+            if np.alltrue(np.less(corr[j + 1 - 500: j + 1], 1.0 / e)):
                 break
 
     shifts, corr = shifts[:j + 1], corr[:j + 1]
     try:
-        corrlength = n.min(n.compress(corr < 1.0 / e, shifts))
+        corrlength = np.min(np.compress(corr < 1.0 / e, shifts))
     except ValueError:
         corrlength = len(x)
         print('Error! Correlation length not found.')
@@ -1481,7 +1481,7 @@ def corrlength2(x, step=1, BI=0.2, widget=False):
     """
     x = x - x.mean()
 
-    indstart = n.round(len(x) * BI)
+    indstart = np.round(len(x) * BI)
 
     x = x[indstart:]
 
@@ -1507,17 +1507,17 @@ def corrlength2(x, step=1, BI=0.2, widget=False):
 
         if j > 500.0:
             # Stop iteration if last 500 points are below 0.2
-            if n.alltrue(n.less(corr[j + 1 - 500: j + 1], 0.2)): break
+            if np.alltrue(np.less(corr[j + 1 - 500: j + 1], 0.2)): break
 
         j += 1
 
-    shifts = n.array(shifts)
-    corr = n.array(corr)
+    shifts = np.array(shifts)
+    corr = np.array(corr)
 
     # shifts, corr = shifts[:j + 1], corr[:j + 1]   # solve the problem with append ?
-    corrlength = n.min(n.compress(corr < 1.0 / e, shifts))
+    corrlength = np.min(np.compress(corr < 1.0 / e, shifts))
     if not widget: print('Correlation drops to 1/e after %d steps' %
-                         n.min(n.compress(corr < 1.0 / e, shifts))
+                         np.min(np.compress(corr < 1.0 / e, shifts))
                          )
 
     return shifts, corr, corrlength
@@ -1525,7 +1525,7 @@ def corrlength2(x, step=1, BI=0.2, widget=False):
 
 def cshift(x, j):
     j = j % len(x)
-    return n.concatenate((x[j:], x[:j]))
+    return np.concatenate((x[j:], x[:j]))
 
 
 def corrlength_multichain(vds, step=1, BI=0.2, plot=False, widget=False,
@@ -1777,13 +1777,13 @@ def corrlenchain(corrlen):
     """
 
     # get correlation length values and put into an array
-    acorr = n.array(corrlen.values())
+    acorr = np.array(corrlen.values())
 
     # reshape (all correlation length values for each chain instead of for each parameter)
     acorr2 = acorr.reshape(len(corrlen.keys()), len(corrlen[corrlen.keys()[0]]))
 
     # get maximum correlation length in each chain
-    cl = n.max(acorr2, axis=0)
+    cl = np.max(acorr2, axis=0)
 
     return cl
 
@@ -1827,9 +1827,9 @@ def checkpriors(vdc, pastisfile, **kargs):
             p.figure()
             pdf, bins, patches = p.hist(vdd[parameter], normed=True, **kargs)
             p.xlabel(parameter)
-            xmin = n.min(vdd[parameter])
-            xmax = n.max(vdd[parameter])
-            x = n.arange(xmin, xmax, (xmax - xmin) / 1000.)
+            xmin = np.min(vdd[parameter])
+            xmax = np.max(vdd[parameter])
+            x = np.arange(xmin, xmax, (xmax - xmin) / 1000.)
             y = priordict[parameter].pdf(x)
             p.plot(x, y, 'r')
 
@@ -1861,7 +1861,7 @@ def register_chain(vd, beta=None, target=None, runid=None, force=False):
 
     """
     if isinstance(vd, dict):
-        if n.any([beta == None, target == None, runid == None]):
+        if np.any([beta == None, target == None, runid == None]):
             raise Error(
                 'If input is a dictionary, parameters beta, target, and runid must be specified.')
 
@@ -1912,7 +1912,7 @@ def get_multichain(vdchain, beta=None):
 
     vds = []
 
-    for chain in n.arange(len(vdchain)):
+    for chain in np.arange(len(vdchain)):
         if vdchain[chain].beta == beta or beta == None:
             vds.append(vdchain[chain]._value_dict)
         else:
@@ -1932,7 +1932,7 @@ def print_param(vds, kk, BI=0.5):
         fname = os.path.split(vds[i].filename)[-1]
         N = len(vd['logL'])
 
-        error = n.std(vd[kk][BI * N:])
+        error = np.std(vd[kk][BI * N:])
         ## Trick to show good number of decimal places
         s = '%e' % error
         a = s[s.find(
@@ -1946,8 +1946,8 @@ def print_param(vds, kk, BI=0.5):
             print('Filename\tlog(L)\t%s\tsigma(%s)' % (kk, kk))
 
         fmtstr = '%s\t%.1f\t%.' + str(ndecimal) + 'f\t%.' + str(ndecimal) + 'f'
-        print(fmtstr % (fname, n.median(vd['logL'][BI * N:]),
-                        n.median(vd[kk][BI * N:]), error)
+        print(fmtstr % (fname, np.median(vd['logL'][BI * N:]),
+                        np.median(vd[kk][BI * N:]), error)
               )
     return
 
@@ -1977,7 +1977,7 @@ def get_Mtier(AR, Period, solarunits=True):
     from .. import G, Msun, Rsun
     # if len(AR) <> len(Period) :
     #	raise ValueError('Arguments must have the same dimension')
-    cte = (4. * n.pi ** 2 / G) ** (1. / 3.)
+    cte = (4. * np.pi ** 2 / G) ** (1. / 3.)
     Mtier = cte * AR / (Period * 86400.) ** (2. / 3.)
     return Mtier / Msun ** (1. / 3.) * Rsun
 
@@ -2011,14 +2011,14 @@ def get_ImpactParameter(AR, inc, ecc, omega, component='primary'):
         Impact parameter
 
     """
-    import numpy as n
+    import numpy as np
 
     if component == 'primary':
-        b = AR * n.cos(inc / 180. * n.pi) * (1. - ecc ** 2) / (
-            1. + ecc * n.sin(omega / 180. * n.pi))
+        b = AR * np.cos(inc / 180. * np.pi) * (1. - ecc ** 2) / (
+            1. + ecc * np.sin(omega / 180. * np.pi))
     elif component == 'secondary':
-        b = AR * n.cos(inc / 180. * n.pi) * (1. - ecc ** 2) / (
-            1. - ecc * n.sin(omega / 180. * n.pi))
+        b = AR * np.cos(inc / 180. * np.pi) * (1. - ecc ** 2) / (
+            1. - ecc * np.sin(omega / 180. * np.pi))
     # else : raise 'InputError' : 'component must be either primary or secondary'
     return b
 
@@ -2057,18 +2057,18 @@ def get_TransitDuration(P, AR, k, inc, ecc, omega, component='primary'):
         Total transit duration [hours]
 
     """
-    import numpy as n
+    import numpy as np
 
     b = get_ImpactParameter(AR, inc, ecc, omega, component=component)
 
     if component == 'primary':
-        T14 = P / n.pi * n.arcsin(n.sqrt((1. + k ** 2) - b ** 2) / AR / n.sin(
-            inc / 180. * n.pi)) * n.sqrt(1. - ecc ** 2) / (
-                  1. + ecc * n.sin(omega * n.pi / 180.))
+        T14 = P / np.pi * np.arcsin(np.sqrt((1. + k ** 2) - b ** 2) / AR / np.sin(
+            inc / 180. * np.pi)) * np.sqrt(1. - ecc ** 2) / (
+                  1. + ecc * np.sin(omega * np.pi / 180.))
     elif component == 'secondary':
-        T14 = P / n.pi * n.arcsin(n.sqrt((1. + k ** 2) - b ** 2) / AR / n.sin(
-            inc / 180. * n.pi)) * n.sqrt(1. - ecc ** 2) / (
-                  1. - ecc * n.sin(omega * n.pi / 180.))
+        T14 = P / np.pi * np.arcsin(np.sqrt((1. + k ** 2) - b ** 2) / AR / np.sin(
+            inc / 180. * np.pi)) * np.sqrt(1. - ecc ** 2) / (
+                  1. - ecc * np.sin(omega * np.pi / 180.))
     # else : raise 'InputError' : 'component must be either primary or secondary'
     return T14 * 24.
 
@@ -2098,11 +2098,11 @@ def get_Tp(P, T0, ecc, omega):
     Tp : float, list or array
         Epoch of periastron
     """
-    import numpy as n
+    import numpy as np
 
-    E_0 = n.arctan2(n.sqrt(1. - ecc ** 2) * n.cos(omega * n.pi / 180.),
-                    n.sin(omega * n.pi / 180.) + ecc)
-    Tp = T0 - P / (2. * n.pi) * (E_0 - ecc * n.sin(E_0))
+    E_0 = np.arctan2(np.sqrt(1. - ecc ** 2) * np.cos(omega * np.pi / 180.),
+                    np.sin(omega * np.pi / 180.) + ecc)
+    Tp = T0 - P / (2. * np.pi) * (E_0 - ecc * np.sin(E_0))
     return Tp
 
 
@@ -2127,8 +2127,8 @@ def gelmanrubin(vds, BI=0.2, BO=1.0, thinning=1, qs=[0.9, 0.95, 0.99]):
         print(vds[0].__class__)
         
     keys = list(vdi.keys())
-    start_index = n.int(BI * len(vdi[keys[0]]))
-    end_index = n.int(BO * len(vdi[keys[0]]))
+    start_index = np.int(BI * len(vdi[keys[0]]))
+    end_index = np.int(BO * len(vdi[keys[0]]))
 
     Ws = {}
     Bs = {}
@@ -2154,22 +2154,22 @@ def gelmanrubin(vds, BI=0.2, BO=1.0, thinning=1, qs=[0.9, 0.95, 0.99]):
                 print('Parameter {} missing from some chain'.format(kk))
                 continue
 
-        values = n.array(values)
+        values = np.array(values)
         nn = values.shape[1] # Number of steps
         m = values.shape[0] # Number of walkers
 
         # Compute within-chain variance
-        sm2 = n.var(values, axis=1, ddof=1)  # Variance for each chain
-        W = n.mean(sm2)  # Mean variance over all chains
+        sm2 = np.var(values, axis=1, ddof=1)  # Variance for each chain
+        W = np.mean(sm2)  # Mean variance over all chains
         Ws[kk] = W
 
         # Compute between-chain variance
-        thetamean = n.mean(values, axis=1)  # Mean for each chain
-        B = nn * n.var(thetamean, ddof=1)  # Variance of means, multiplied by nn
+        thetamean = np.mean(values, axis=1)  # Mean for each chain
+        B = nn * np.var(thetamean, ddof=1)  # Variance of means, multiplied by nn
         Bs[kk] = B
 
         # Estimate mean (mu) using all chains
-        mu = n.mean(values)
+        mu = np.mean(values)
         MUs[kk] = mu
 
         # Estimate variance by weighted average of B and W (eq.3 Gelman & Rubin)
@@ -2185,27 +2185,27 @@ def gelmanrubin(vds, BI=0.2, BO=1.0, thinning=1, qs=[0.9, 0.95, 0.99]):
         Vs[kk] = V
 
         # and degrees of freedom df = 2*V**2/var(V) (see eq. 4 G & R)
-        varV = ((nn - 1.0) / nn) ** 2.0 * (1.0 / m) * n.var(sm2) + \
-               ((m + 1.0) / (nn * m)) ** 2.0 * (2.0 / (m - 1.0)) * B ** 2.0 + \
-               2 * (m + 1.0) * (nn - 1.0) / (m * nn ** 2.0) * \
-               (1.0 * nn / m) * (n.cov(sm2, thetamean ** 2.0)[1, 0] - \
-                                 2 * mu * n.cov(sm2, thetamean)[1, 0])
+        varV = ((nn - 1.0) / nn) ** 2.0 * (1.0 / m) * np.var(sm2) +\
+               ((m + 1.0) / (nn * m)) ** 2.0 * (2.0 / (m - 1.0)) * B ** 2.0 +\
+               2 * (m + 1.0) * (nn - 1.0) / (m * nn ** 2.0) *\
+               (1.0 * nn / m) * (np.cov(sm2, thetamean ** 2.0)[1, 0] -\
+                                 2 * mu * np.cov(sm2, thetamean)[1, 0])
 
         df = 2 * V ** 2.0 / varV
         DFs[kk] = df
 
-        psr = n.sqrt((V / W) * df / (df - 2.0))
+        psr = np.sqrt((V / W) * df / (df - 2.0))
         PSRF[kk] = psr
 
         ## Compute degrees of freedom for F distribution for PSRF
         # see sect 3.5 and 3.7 of G & R
         dfn = m - 1
-        dfd = 2.0 * W ** 2 / (n.var(sm2) / m)
+        dfd = 2.0 * W ** 2 / (np.var(sm2) / m)
 
         ## Compute 90%, 95% and 99% percentiles for this distribution
         qq = scipy.stats.f.ppf(qs, dfn, dfd)
 
-        lims = n.sqrt(
+        lims = np.sqrt(
             ((nn - 1.) / nn + (m + 1.) / (nn * m) * qq) * df / (df - 2.0))
         
         if j == 0:
@@ -2254,8 +2254,8 @@ def geweke(X, first=0.1, last=0.5, Nsamples=20, BI=0):
                     lxxc = lxx[a[:int(len(lxx) * last)]]
 
                     # Compute mean and variance of each part
-                    z = (n.mean(fxx) - n.mean(lxxc)) / sqrt(
-                        n.var(fxx) + n.var(lxxc))
+                    z = (np.mean(fxx) - np.mean(lxxc)) / sqrt(
+                        np.var(fxx) + np.var(lxxc))
                     Z[par].append(z)
 
     else:
@@ -2361,8 +2361,8 @@ def find_BI(vds, samplesize=0.05, endsample=0.1, backwards=True,
                                            niter=nitersigmaclip
                                            )
 
-        mean_yf = n.mean(yf)
-        var_yf = n.var(yf, ddof=1)
+        mean_yf = np.mean(yf)
+        var_yf = np.var(yf, ddof=1)
 
         # Explore the chain
         Nsample = N * samplesize
@@ -2385,19 +2385,19 @@ def find_BI(vds, samplesize=0.05, endsample=0.1, backwards=True,
                                                    niter=nitersigmaclip
                                                    )
 
-                var_ys = n.var(ys, ddof=1)
+                var_ys = np.var(ys, ddof=1)
 
                 # Compute Geweke statistics (modified: instead of using the
                 # variance of sample, which can be extremely large and hinder
                 # a correct estimation of BI, we use twice the variance of the
                 # end sample.
-                z = (n.mean(ys) - mean_yf) / n.sqrt(2 * var_yf)
+                z = (np.mean(ys) - mean_yf) / np.sqrt(2 * var_yf)
 
                 # The variance must also be approximately the same
                 # If normal, these variables should be Chi2(N-1), 
                 # so their variance is 2*(N - 1), where N is the size of the 
                 # sample.
-                zz = (var_ys - var_yf) / n.sqrt(
+                zz = (var_ys - var_yf) / np.sqrt(
                     2 * (len(ys) - 1) + 2 * (len(yf) - 1))
 
                 # Ad hoc condition on maximum of sample
@@ -2406,12 +2406,12 @@ def find_BI(vds, samplesize=0.05, endsample=0.1, backwards=True,
                 condAH = n.max(ys) >= (mean_yf - tolerance*n.sqrt(var_yf))
                 """
                 zlisti.append(z)
-                zzlisti.append(n.abs(zz))
+                zzlisti.append(np.abs(zz))
 
                 if checkvariance:
-                    accept = n.abs(z) < tolerance and n.abs(zz) < tolerance
+                    accept = np.abs(z) < tolerance and np.abs(zz) < tolerance
                 else:
-                    accept = n.abs(z) < tolerance
+                    accept = np.abs(z) < tolerance
                 if accept:
                     print('Chain %d: BI set to '
                           '%.2f' % (j, ef + 0.5 * samplesize))
@@ -2444,20 +2444,20 @@ def find_BI(vds, samplesize=0.05, endsample=0.1, backwards=True,
                                                    niter=nitersigmaclip
                                                    )
 
-                var_ys = n.var(ys, ddof=1)
+                var_ys = np.var(ys, ddof=1)
 
                 # Compute Geweke statistics
-                z = (n.mean(ys) - mean_yf) / n.sqrt(2 * var_yf)
+                z = (np.mean(ys) - mean_yf) / np.sqrt(2 * var_yf)
 
                 # The variance must also be approximately the same
                 # If normal, these variables should be Chi2(N-1), 
                 # so their variance is 2*(N - 1), where N is the size of the 
                 # sample.
-                zz = (var_ys - var_yf) / n.sqrt(
+                zz = (var_ys - var_yf) / np.sqrt(
                     2 * (len(ys) - 1) + 2 * (len(yf) - 1))
 
                 # Ad hoc condition on maximum of sample
-                condAH = n.max(ys) >= (mean_yf - tolerance * n.sqrt(var_yf))
+                condAH = np.max(ys) >= (mean_yf - tolerance * np.sqrt(var_yf))
 
                 """
                 ## Compute KS test on the two samples
@@ -2466,15 +2466,15 @@ def find_BI(vds, samplesize=0.05, endsample=0.1, backwards=True,
 
                 if verbose:
                     # print z, zz, probKS
-                    print(ei, ef, mean_yf, var_yf, n.mean(ys), var_ys, condAH)
-                zlisti.append(n.abs(z))
-                zzlisti.append(n.abs(zz))
+                    print(ei, ef, mean_yf, var_yf, np.mean(ys), var_ys, condAH)
+                zlisti.append(np.abs(z))
+                zzlisti.append(np.abs(zz))
 
                 if checkvariance:
-                    accept = n.abs(z) > tolerance or n.abs(
+                    accept = np.abs(z) > tolerance or np.abs(
                         zz) > tolerance or -condAH
                 else:
-                    accept = n.abs(z) > tolerance or -condAH
+                    accept = np.abs(z) > tolerance or -condAH
 
                 if accept:
                     print('Chain %d: BI set to'
@@ -2619,8 +2619,8 @@ def select_best_chains(vds, BI, CL, nmin=100, tolerance=2.0,
         else:
             iaccept.append(j)
 
-        median_y = n.median(yc)
-        sigma_y = n.std(yc, ddof=1)
+        median_y = np.median(yc)
+        sigma_y = np.std(yc, ddof=1)
 
         ## Add array to list
         ys.append(yc)
@@ -2630,9 +2630,9 @@ def select_best_chains(vds, BI, CL, nmin=100, tolerance=2.0,
         mediany.append(median_y)
         sigmay.append(sigma_y)
 
-    y0 = ys[n.argmax(mediany)]
-    my0 = mediany[n.argmax(mediany)]
-    sy0 = sigmay[n.argmax(mediany)]
+    y0 = ys[np.argmax(mediany)]
+    my0 = mediany[np.argmax(mediany)]
+    sy0 = sigmay[np.argmax(mediany)]
 
     probsKS = []
     for i in range(len(mediany)):
@@ -2643,7 +2643,7 @@ def select_best_chains(vds, BI, CL, nmin=100, tolerance=2.0,
             fname = ''
 
         ## Compute difference between chain i and best
-        z = (mediany[i] - my0) / n.sqrt(sy0 ** 2 + sigmay[i] ** 2)
+        z = (mediany[i] - my0) / np.sqrt(sy0 ** 2 + sigmay[i] ** 2)
 
         ## Compute KS test on the two samples
         zz, probKS = scipy.stats.ks_2samp(y0, ys[i])
@@ -2672,7 +2672,7 @@ def select_best_chains(vds, BI, CL, nmin=100, tolerance=2.0,
                                                                mediany[i],
                                                                sigmay[i], z,
                                                                probKS,
-                                                               n.median(
+                                                               np.median(
                                                                    pars[i]),
                                                                len(pars[i])
                                                                )
@@ -2733,7 +2733,7 @@ def get_priors_from_value_dict(vds, pastisfile):
             vdd = vd.get_value_dict().copy()
 
         N = len(vdd[vdd.keys()[0]])
-        vdd['prior'] = n.zeros(N)
+        vdd['prior'] = np.zeros(N)
 
         ### Iterate over all elements in chain.
         for i in range(N):
@@ -2888,10 +2888,10 @@ def compute_hdi(binedges, pdf, q=0.95):
     lower_bin_edges = binedges[: - 1]
     upper_bin_edges = binedges[1:]
     bincentre = 0.5 * (binedges[1:] + binedges[:-1])
-    binsize = n.diff(binedges)
+    binsize = np.diff(binedges)
 
     # Sort elements from pdf
-    isort = n.argsort(pdf)[::-1]
+    isort = np.argsort(pdf)[::-1]
 
     cumulq = 0
     # Start adding bins until the requested fraction of the mass (q) is
@@ -2906,8 +2906,8 @@ def compute_hdi(binedges, pdf, q=0.95):
     bins_in_HDI = isort[: i + 1]
 
     # Sort binindex to find for non-contiguous bins
-    sorted_binnumber = n.sort(bins_in_HDI)
-    jumpind = n.argwhere(n.diff(sorted_binnumber) > 1)
+    sorted_binnumber = np.sort(bins_in_HDI)
+    jumpind = np.argwhere(np.diff(sorted_binnumber) > 1)
 
     # Construct intervals
     HDI = []

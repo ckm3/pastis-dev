@@ -7,7 +7,7 @@ import tkMessageBox
 
 
 def save_target(self, quit = None, save_edit = None):
-	import numpy as n
+	import numpy as np
 	import tkMessageBox
 
 	#if self.v11.get() and self.compute_prior(self.v12.get(), [self.v13.get(), self.v14.get(), self.v15.get(), self.v16.get(), self.v17.get()], self.v10.get()) == 0 :
@@ -29,7 +29,7 @@ def save_target(self, quit = None, save_edit = None):
 	elif self.v91.get() and self.compute_prior(self.v92.get(), [self.v93.get(), self.v94.get(), self.v95.get(), self.v96.get(), self.v97.get()], self.v90.get()) == 0 and self.infodict['randomstart'] == 0:
 		tkMessageBox.showerror("Error", "First E(B-V) value out of prior.\n Please put a correct value within the prior range")
 	else : 
-		#self.tstar = {'mact' : [self.v10.get(), self.v11.get(), self.v12.get(), self.v13.get(), self.v14.get()], 'R' : [self.v20.get(), self.v21.get(), self.v22.get(), self.v23.get(), self.v24.get()], 'teff' : [self.v30.get(), self.v31.get(), self.v32.get(), self.v33.get(), self.v34.get()],'logg' : [self.v40.get(), self.v41.get(), self.v42.get(), self.v43.get(), self.v44.get()], 'z' : [self.v50.get(), self.v51.get(), self.v52.get(), self.v53.get(), self.v54.get()], 'dist' : [self.v60.get(), self.v61.get(), self.v62.get(), self.v63.get(), self.v64.get()], 'vsini' : [self.v70.get(), self.v71.get(), self.v72.get(), self.v73.get(), self.v74.get()], 'v0' : [self.v80.get(), self.v81.get(), self.v82.get(), self.v83.get(), self.v84.get()]}
+	 #self.tstar = {'mact' : [self.v10.get(), self.v11.get(), self.v12.get(), self.v13.get(), self.v14.get()], 'R' : [self.v20.get(), self.v21.get(), self.v22.get(), self.v23.get(), self.v24.get()], 'teff' : [self.v30.get(), self.v31.get(), self.v32.get(), self.v33.get(), self.v34.get()],'logg' : [self.v40.get(), self.v41.get(), self.v42.get(), self.v43.get(), self.v44.get()], 'z' : [self.v50.get(), self.v51.get(), self.v52.get(), self.v53.get(), self.v54.get()], 'dist' : [self.v60.get(), self.v61.get(), self.v62.get(), self.v63.get(), self.v64.get()], 'vsini' : [self.v70.get(), self.v71.get(), self.v72.get(), self.v73.get(), self.v74.get()], 'v0' : [self.v80.get(), self.v81.get(), self.v82.get(), self.v83.get(), self.v84.get()]}
 		self.tstar = {'teff' : [self.v30.get(), self.v31.get(), self.v32.get(), self.v33.get(), self.v34.get(), self.v35.get(), self.v36.get(), self.v37.get()],'logg' : [self.v40.get(), self.v41.get(), self.v42.get(), self.v43.get(), self.v44.get(), self.v45.get(), self.v46.get(), self.v47.get()], 'z' : [self.v50.get(), self.v51.get(), self.v52.get(), self.v53.get(), self.v54.get(), self.v55.get(), self.v56.get(), self.v57.get()], 'dist' : [self.v60.get(), self.v61.get(), self.v62.get(), self.v63.get(), self.v64.get(), self.v65.get(), self.v66.get(), self.v67.get()], 'vsini' : [self.v70.get(), self.v71.get(), self.v72.get(), self.v73.get(), self.v74.get(), self.v75.get(), self.v76.get(), self.v77.get()], 'v0' : [self.v80.get(), self.v81.get(), self.v82.get(), self.v83.get(), self.v84.get(), self.v85.get(), self.v86.get(), self.v87.get()], 'ebmv' : [self.v90.get(), self.v91.get(), self.v92.get(), self.v93.get(), self.v94.get(), self.v95.get(), self.v96.get(), self.v97.get(),self.v98.get()]}
 		self.islight = 0
 		if save_edit:
@@ -45,10 +45,10 @@ def save_target(self, quit = None, save_edit = None):
 		if quit: self.wtarget.destroy()
 
 def save_star(self, quit = None, save_edit = None):
-	import numpy as n
+	import numpy as np
 	import tkMessageBox
-	
-	
+ 
+ 
 	if self.v11.get() and self.compute_prior(self.v12.get(), [self.v13.get(), self.v14.get(), self.v15.get(), self.v16.get(), self.v17.get()], self.v10.get()) == 0 and self.infodict['randomstart'] == 0 :
 		tkMessageBox.showerror("Error", "First Initial mass value out of prior.\n Please put a correct value within the prior range")
 	elif self.v21.get() and self.compute_prior(self.v22.get(), [self.v23.get(), self.v24.get(), self.v25.get(), self.v26.get(), self.v27.get()], self.v20.get()) == 0 and self.infodict['randomstart'] == 0:
@@ -71,7 +71,7 @@ def save_star(self, quit = None, save_edit = None):
 		self.islight = 0
 		if save_edit:
 			self.list_objects[self.select] = self.star
-		else:	
+		else: 
 			self.list_objects['star'+str(self.nb_star)] = self.star
 			self.object_list.append('star'+str(self.nb_star))
 			self.star_list.append('star'+str(self.nb_star))
@@ -82,7 +82,7 @@ def save_star(self, quit = None, save_edit = None):
 		if quit: self.wstar.destroy()
 
 def save_planet(self, quit = None, save_edit = None):
-	import numpy as n
+	import numpy as np
 	import tkMessageBox
 
 	if self.v11.get() and self.compute_prior(self.v12.get(), [self.v13.get(), self.v14.get(), self.v15.get(), self.v16.get(), self.v17.get()], self.v10.get()) == 0 and self.infodict['randomstart'] == 0:
@@ -111,7 +111,7 @@ def save_planet(self, quit = None, save_edit = None):
 		self.islight = 0
 		if save_edit:
 			self.list_objects[self.select] = self.planet
-		else:	
+		else: 
 			self.list_objects['planet'+str(self.nb_planet)] = self.planet
 			self.planet_list.append('planet'+str(self.nb_planet))
 			self.nb_planet+=1
@@ -121,7 +121,7 @@ def save_planet(self, quit = None, save_edit = None):
 		if quit: self.wplanet.destroy()
 
 def save_binary(self, quit = None, save_edit = None):
-	import numpy as n
+	import numpy as np
 	import tkMessageBox
 
 	if self.v31.get() and self.compute_prior(self.v32.get(), [self.v33.get(), self.v34.get(), self.v35.get(), self.v36.get(), self.v37.get()], self.v30.get()) == 0 and self.infodict['randomstart'] == 0:
@@ -153,7 +153,7 @@ def save_binary(self, quit = None, save_edit = None):
 		if quit: self.wbinary.destroy()
 
 def save_triple(self, quit = None, save_edit = None):
-	import numpy as n
+	import numpy as np
 	import tkMessageBox
 
 	if self.v31.get() and self.compute_prior(self.v32.get(), [self.v33.get(), self.v34.get(), self.v35.get(), self.v36.get(), self.v37.get()], self.v30.get()) == 0 and self.infodict['randomstart'] == 0:
@@ -183,7 +183,7 @@ def save_triple(self, quit = None, save_edit = None):
 		if quit: self.wtriple.destroy()
 
 def save_plansys(self, quit = None, save_edit = None):
-	import numpy as n
+	import numpy as np
 	if self.v3.get() == 'None' : self.plansys = {'star' : self.v1.get(), 'planet1' : self.v2.get()}
 	elif self.v4.get() == 'None' : self.plansys = {'star' : self.v1.get(), 'planet1' : self.v2.get(),'planet2' : self.v3.get()}
 	elif self.v5.get() == 'None' : self.plansys = {'star' : self.v1.get(), 'planet1' : self.v2.get(),'planet2' : self.v3.get(),'planet3' : self.v4.get()}
@@ -209,7 +209,7 @@ def save_plansys(self, quit = None, save_edit = None):
 
 
 def save_fitobs(self, quit = None, save_edit = None):
-	import numpy as n
+	import numpy as np
 	import tkMessageBox
 
 	if self.v11.get() and self.compute_prior(self.v12.get(), [self.v13.get(), self.v14.get(), self.v15.get(), self.v16.get(), self.v17.get()], self.v10.get()) == 0 and self.infodict['randomstart'] == 0:
@@ -250,43 +250,43 @@ def save_fitobs(self, quit = None, save_edit = None):
 		tkMessageBox.showerror("Error", "First spin-orbit angle value out of prior.\n Please put a correct value within the prior range")
 	else : 
 		if self.v98.get() : self.fitobs = {'AR' : [self.v10.get(), self.v11.get(), self.v12.get(), self.v13.get(), self.v14.get(), self.v15.get(), self.v16.get(), self.v17.get()],\
-			'k' : [self.v20.get(), self.v21.get(), self.v22.get(), self.v23.get(), self.v24.get(), self.v25.get(), self.v26.get(), self.v27.get()],\
-			'P' : [self.v30.get(), self.v31.get(), self.v32.get(), self.v33.get(), self.v34.get(), self.v35.get(), self.v36.get(), self.v37.get()],\
-			'incl' : [self.v40.get(), self.v41.get(), self.v42.get(), self.v43.get(), self.v44.get(), self.v45.get(), self.v46.get(), self.v47.get()],\
-			'ecc' : [self.v50.get(), self.v51.get(), self.v52.get(), self.v53.get(), self.v54.get(), self.v55.get(), self.v56.get(), self.v57.get()],\
-			'omega' : [self.v60.get(), self.v61.get(), self.v62.get(), self.v63.get(), self.v64.get(), self.v65.get(), self.v66.get(), self.v67.get()],\
-			'albedo' : [self.v70.get(), self.v71.get(), self.v72.get(), self.v73.get(), self.v74.get(), self.v75.get(), self.v76.get(), self.v77.get()],\
-			'f' : [self.v80.get(), self.v81.get(), self.v82.get(), self.v83.get(), self.v84.get(), self.v85.get(), self.v86.get(), self.v87.get()],\
-			'T0' : [self.v90.get(), self.v91.get(), self.v92.get(), self.v93.get(), self.v94.get(), self.v95.get(), self.v96.get(), self.v97.get()],\
-			'ua' : [self.v110.get(), self.v111.get(), self.v112.get(), self.v113.get(), self.v114.get(), self.v115.get(), self.v116.get(), self.v117.get()],\
-			'ub' : [self.v120.get(), self.v121.get(), self.v122.get(), self.v123.get(), self.v124.get(), self.v125.get(), self.v126.get(), self.v127.get()],\
-			'gd' : [self.v130.get(), self.v131.get(), self.v132.get(), self.v133.get(), self.v134.get(), self.v135.get(), self.v136.get(), self.v137.get()],\
-			'K' : [self.v140.get(), self.v141.get(), self.v142.get(), self.v143.get(), self.v144.get(), self.v145.get(), self.v146.get(), self.v147.get()],\
-			'Mr' : [self.v150.get(), self.v151.get(), self.v152.get(), self.v153.get(), self.v154.get(), self.v155.get(), self.v156.get(), self.v157.get()],\
-			'v0' : [self.v160.get(), self.v161.get(), self.v162.get(), self.v163.get(), self.v164.get(), self.v165.get(), self.v166.get(), self.v167.get()],\
-			'vsini' : [self.v170.get(), self.v171.get(), self.v172.get(), self.v173.get(), self.v174.get(), self.v175.get(), self.v176.get(), self.v177.get()],\
-			'lambda' : [self.v180.get(), self.v181.get(), self.v182.get(), self.v183.get(), self.v184.get(), self.v185.get(), self.v186.get(), self.v187.get()]}
+   'k' : [self.v20.get(), self.v21.get(), self.v22.get(), self.v23.get(), self.v24.get(), self.v25.get(), self.v26.get(), self.v27.get()],\
+   'P' : [self.v30.get(), self.v31.get(), self.v32.get(), self.v33.get(), self.v34.get(), self.v35.get(), self.v36.get(), self.v37.get()],\
+   'incl' : [self.v40.get(), self.v41.get(), self.v42.get(), self.v43.get(), self.v44.get(), self.v45.get(), self.v46.get(), self.v47.get()],\
+   'ecc' : [self.v50.get(), self.v51.get(), self.v52.get(), self.v53.get(), self.v54.get(), self.v55.get(), self.v56.get(), self.v57.get()],\
+   'omega' : [self.v60.get(), self.v61.get(), self.v62.get(), self.v63.get(), self.v64.get(), self.v65.get(), self.v66.get(), self.v67.get()],\
+   'albedo' : [self.v70.get(), self.v71.get(), self.v72.get(), self.v73.get(), self.v74.get(), self.v75.get(), self.v76.get(), self.v77.get()],\
+   'f' : [self.v80.get(), self.v81.get(), self.v82.get(), self.v83.get(), self.v84.get(), self.v85.get(), self.v86.get(), self.v87.get()],\
+   'T0' : [self.v90.get(), self.v91.get(), self.v92.get(), self.v93.get(), self.v94.get(), self.v95.get(), self.v96.get(), self.v97.get()],\
+   'ua' : [self.v110.get(), self.v111.get(), self.v112.get(), self.v113.get(), self.v114.get(), self.v115.get(), self.v116.get(), self.v117.get()],\
+   'ub' : [self.v120.get(), self.v121.get(), self.v122.get(), self.v123.get(), self.v124.get(), self.v125.get(), self.v126.get(), self.v127.get()],\
+   'gd' : [self.v130.get(), self.v131.get(), self.v132.get(), self.v133.get(), self.v134.get(), self.v135.get(), self.v136.get(), self.v137.get()],\
+   'K' : [self.v140.get(), self.v141.get(), self.v142.get(), self.v143.get(), self.v144.get(), self.v145.get(), self.v146.get(), self.v147.get()],\
+   'Mr' : [self.v150.get(), self.v151.get(), self.v152.get(), self.v153.get(), self.v154.get(), self.v155.get(), self.v156.get(), self.v157.get()],\
+   'v0' : [self.v160.get(), self.v161.get(), self.v162.get(), self.v163.get(), self.v164.get(), self.v165.get(), self.v166.get(), self.v167.get()],\
+   'vsini' : [self.v170.get(), self.v171.get(), self.v172.get(), self.v173.get(), self.v174.get(), self.v175.get(), self.v176.get(), self.v177.get()],\
+   'lambda' : [self.v180.get(), self.v181.get(), self.v182.get(), self.v183.get(), self.v184.get(), self.v185.get(), self.v186.get(), self.v187.get()]}
 		else : self.fitobs  =  {'AR' : [self.v10.get(), self.v11.get(), self.v12.get(), self.v13.get(), self.v14.get(), self.v15.get(), self.v16.get(), self.v17.get()],\
-			'k' : [self.v20.get(), self.v21.get(), self.v22.get(), self.v23.get(), self.v24.get(), self.v25.get(), self.v26.get(), self.v27.get()],\
-			'P' : [self.v30.get(), self.v31.get(), self.v32.get(), self.v33.get(), self.v34.get(), self.v35.get(), self.v36.get(), self.v37.get()],\
-			'incl' : [self.v40.get(), self.v41.get(), self.v42.get(), self.v43.get(), self.v44.get(), self.v45.get(), self.v46.get(), self.v47.get()],\
-			'ecc' : [self.v50.get(), self.v51.get(), self.v52.get(), self.v53.get(), self.v54.get(), self.v55.get(), self.v56.get(), self.v57.get()],\
-			'omega' : [self.v60.get(), self.v61.get(), self.v62.get(), self.v63.get(), self.v64.get(), self.v65.get(), self.v66.get(), self.v67.get()],\
-			'albedo' : [self.v70.get(), self.v71.get(), self.v72.get(), self.v73.get(), self.v74.get(), self.v75.get(), self.v76.get(), self.v77.get()],\
-			'f' : [self.v80.get(), self.v81.get(), self.v82.get(), self.v83.get(), self.v84.get(), self.v85.get(), self.v86.get(), self.v87.get()],\
-			'Tp' : [self.v100.get(), self.v101.get(), self.v102.get(), self.v103.get(), self.v104.get(), self.v105.get(), self.v106.get(), self.v107.get()],\
-			'ua' : [self.v110.get(), self.v111.get(), self.v112.get(), self.v113.get(), self.v114.get(), self.v115.get(), self.v116.get(), self.v117.get()],\
-			'ub' : [self.v120.get(), self.v121.get(), self.v122.get(), self.v123.get(), self.v124.get(), self.v125.get(), self.v126.get(), self.v127.get()],\
-			'gd' : [self.v130.get(), self.v131.get(), self.v132.get(), self.v133.get(), self.v134.get(), self.v135.get(), self.v136.get(), self.v137.get()],\
-			'K' : [self.v140.get(), self.v141.get(), self.v142.get(), self.v143.get(), self.v144.get(), self.v145.get(), self.v146.get(), self.v147.get()],\
-			'Mr' : [self.v150.get(), self.v151.get(), self.v152.get(), self.v153.get(), self.v154.get(), self.v155.get(), self.v156.get(), self.v157.get()],\
-			'v0' : [self.v160.get(), self.v161.get(), self.v162.get(), self.v163.get(), self.v164.get(), self.v165.get(), self.v166.get(), self.v167.get()],\
-			'vsini' : [self.v170.get(), self.v171.get(), self.v172.get(), self.v173.get(), self.v174.get(), self.v175.get(), self.v176.get(), self.v177.get()],\
-			'lambda' : [self.v180.get(), self.v181.get(), self.v182.get(), self.v183.get(), self.v184.get(), self.v185.get(), self.v186.get(), self.v187.get()]}
+   'k' : [self.v20.get(), self.v21.get(), self.v22.get(), self.v23.get(), self.v24.get(), self.v25.get(), self.v26.get(), self.v27.get()],\
+   'P' : [self.v30.get(), self.v31.get(), self.v32.get(), self.v33.get(), self.v34.get(), self.v35.get(), self.v36.get(), self.v37.get()],\
+   'incl' : [self.v40.get(), self.v41.get(), self.v42.get(), self.v43.get(), self.v44.get(), self.v45.get(), self.v46.get(), self.v47.get()],\
+   'ecc' : [self.v50.get(), self.v51.get(), self.v52.get(), self.v53.get(), self.v54.get(), self.v55.get(), self.v56.get(), self.v57.get()],\
+   'omega' : [self.v60.get(), self.v61.get(), self.v62.get(), self.v63.get(), self.v64.get(), self.v65.get(), self.v66.get(), self.v67.get()],\
+   'albedo' : [self.v70.get(), self.v71.get(), self.v72.get(), self.v73.get(), self.v74.get(), self.v75.get(), self.v76.get(), self.v77.get()],\
+   'f' : [self.v80.get(), self.v81.get(), self.v82.get(), self.v83.get(), self.v84.get(), self.v85.get(), self.v86.get(), self.v87.get()],\
+   'Tp' : [self.v100.get(), self.v101.get(), self.v102.get(), self.v103.get(), self.v104.get(), self.v105.get(), self.v106.get(), self.v107.get()],\
+   'ua' : [self.v110.get(), self.v111.get(), self.v112.get(), self.v113.get(), self.v114.get(), self.v115.get(), self.v116.get(), self.v117.get()],\
+   'ub' : [self.v120.get(), self.v121.get(), self.v122.get(), self.v123.get(), self.v124.get(), self.v125.get(), self.v126.get(), self.v127.get()],\
+   'gd' : [self.v130.get(), self.v131.get(), self.v132.get(), self.v133.get(), self.v134.get(), self.v135.get(), self.v136.get(), self.v137.get()],\
+   'K' : [self.v140.get(), self.v141.get(), self.v142.get(), self.v143.get(), self.v144.get(), self.v145.get(), self.v146.get(), self.v147.get()],\
+   'Mr' : [self.v150.get(), self.v151.get(), self.v152.get(), self.v153.get(), self.v154.get(), self.v155.get(), self.v156.get(), self.v157.get()],\
+   'v0' : [self.v160.get(), self.v161.get(), self.v162.get(), self.v163.get(), self.v164.get(), self.v165.get(), self.v166.get(), self.v167.get()],\
+   'vsini' : [self.v170.get(), self.v171.get(), self.v172.get(), self.v173.get(), self.v174.get(), self.v175.get(), self.v176.get(), self.v177.get()],\
+   'lambda' : [self.v180.get(), self.v181.get(), self.v182.get(), self.v183.get(), self.v184.get(), self.v185.get(), self.v186.get(), self.v187.get()]}
 		self.islight = 1
 		if save_edit:
 			self.list_objects[self.select] = self.fitobs
-		else:	
+		else: 
 			self.list_objects['fitobs'+str(self.nb_fitobs)] = self.fitobs
 			self.fitobs_list.append('fitobs'+str(self.nb_fitobs))
 			self.nb_fitobs+=1
@@ -317,7 +317,7 @@ def define_target(self, edit = None) :
 	Label(self.wtarget, text='vsini [km/s]', anchor=W).grid(row=8)
 	Label(self.wtarget, text='v0 [km/s]', anchor=W).grid(row=9)
 	Label(self.wtarget, text='E(B-V) [mag]', anchor=W).grid(row=10)
-	
+ 
 	Label(self.wtarget, text='Parameter').grid(row=1, column=0)
 	Label(self.wtarget, text='Value').grid(row=1, column=1)
 	Label(self.wtarget, text='jump ?').grid(row=1, column=2)
@@ -327,7 +327,7 @@ def define_target(self, edit = None) :
 	Label(self.wtarget, text='Value3').grid(row=1, column=6)
 	Label(self.wtarget, text='Value4').grid(row=1, column=7)
 	Label(self.wtarget, text='File').grid(row=1, column=8)
-	
+ 
 	self.v10 = DoubleVar()
 	self.v11 = IntVar()
 	self.v12 = StringVar()
@@ -405,7 +405,7 @@ def define_target(self, edit = None) :
 	if edit:
 	        #self.v10.set(self.list_objects[self.select]['mact'][0])
 	        #self.v11.set(self.list_objects[self.select]['mact'][1])
-		#self.v12.set(self.list_objects[self.select]['mact'][2])
+	 #self.v12.set(self.list_objects[self.select]['mact'][2])
 	        #self.v13.set(self.list_objects[self.select]['mact'][3])
 	        #self.v14.set(self.list_objects[self.select]['mact'][4])
 	        #self.v20.set(self.list_objects[self.select]['R'][0])
@@ -470,7 +470,7 @@ def define_target(self, edit = None) :
 		self.v96.set(self.list_objects[self.select]['ebmv'][6])
 		self.v97.set(self.list_objects[self.select]['ebmv'][7])
 		self.v98.set(self.list_objects[self.select]['ebmv'][8]) 
-	
+ 
 	else:
 		self.v12.set('Normal')
 		self.v22.set('Normal')
@@ -499,7 +499,7 @@ def define_target(self, edit = None) :
 	Entry(self.wtarget, textvariable=self.v25, width=10, bg='white', state = 'disabled').grid(row=3, column=6)
 	Entry(self.wtarget, textvariable=self.v26, width=10, bg='white', state = 'disabled').grid(row=3, column=7)
 	Entry(self.wtarget, textvariable=self.v27, width=10, bg='white', state = 'disabled').grid(row=3, column=8)
-	
+ 
 	Entry(self.wtarget, textvariable=self.v30, width=10, bg='white').grid(row=4, column=1)
 	Checkbutton(self.wtarget, variable=self.v31).grid(row=4, column=2)
 	OptionMenu(self.wtarget, self.v32, *self.list_prior_type).grid(row=4, column=3)
@@ -508,7 +508,7 @@ def define_target(self, edit = None) :
 	Entry(self.wtarget, textvariable=self.v35, width=10, bg='white').grid(row=4, column=6)
 	Entry(self.wtarget, textvariable=self.v36, width=10, bg='white').grid(row=4, column=7)
 	Entry(self.wtarget, textvariable=self.v37, width=10, bg='white').grid(row=4, column=8)
-	
+ 
 	Entry(self.wtarget, textvariable=self.v40, width=10, bg='white').grid(row=5, column=1)
 	Checkbutton(self.wtarget, variable=self.v41).grid(row=5, column=2)
 	OptionMenu(self.wtarget, self.v42, *self.list_prior_type).grid(row=5, column=3)
@@ -553,7 +553,7 @@ def define_target(self, edit = None) :
 	Entry(self.wtarget, textvariable=self.v85, width=10, bg='white').grid(row=9, column=6)
 	Entry(self.wtarget, textvariable=self.v86, width=10, bg='white').grid(row=9, column=7)
 	Entry(self.wtarget, textvariable=self.v87, width=10, bg='white').grid(row=9, column=8)
-	
+ 
 	Entry(self.wtarget, textvariable=self.v90, width=10, bg='white').grid(row=10, column=1)
 	Checkbutton(self.wtarget, variable=self.v91).grid(row=10, column=2)
 	OptionMenu(self.wtarget, self.v92, *self.list_prior_type).grid(row=10, column=3)
@@ -567,7 +567,7 @@ def define_target(self, edit = None) :
 	Button(self.wtarget, text='SAVE & QUIT', command=lambda: self.save_target(quit=1,save_edit=edit)).grid(row=11, column = 6)
 	Button(self.wtarget, text='SAVE', command=lambda: self.save_target(save_edit=edit)).grid(row=11, column = 7)
 	Button(self.wtarget, text='QUIT', command=self.wtarget.destroy).grid(row=11, column = 8)
-	
+ 
 def define_star(self, edit = None) :
 	self.wstar=Toplevel()
 	Label(self.wstar, text='Define a new blend star',font=('Times', 16, 'bold')).grid(row=0, columnspan = 9)
@@ -578,7 +578,7 @@ def define_star(self, edit = None) :
 	Label(self.wstar, text='vsini [km/s]', anchor=W).grid(row=6)
 	Label(self.wstar, text='v0 [km/s]', anchor=W).grid(row=7)
 	Label(self.wstar, text='E(B-V) [mag]', anchor=W).grid(row=8)
-	
+ 
 	Label(self.wstar, text='Parameter').grid(row=1, column=0)
 	Label(self.wstar, text='Value').grid(row=1, column=1)
 	Label(self.wstar, text='jump ?').grid(row=1, column=2)
@@ -732,7 +732,7 @@ def define_star(self, edit = None) :
 	Entry(self.wstar, textvariable=self.v25, width=10, bg='white').grid(row=3, column=6)
 	Entry(self.wstar, textvariable=self.v26, width=10, bg='white').grid(row=3, column=7)
 	Entry(self.wstar, textvariable=self.v27, width=10, bg='white').grid(row=3, column=8)
-	
+ 
 	Entry(self.wstar, textvariable=self.v30, width=10, bg='white').grid(row=4, column=1)
 	Checkbutton(self.wstar, variable=self.v31).grid(row=4, column=2)
 	OptionMenu(self.wstar, self.v32, *self.list_prior_type).grid(row=4, column=3)
@@ -741,7 +741,7 @@ def define_star(self, edit = None) :
 	Entry(self.wstar, textvariable=self.v35, width=10, bg='white').grid(row=4, column=6)
 	Entry(self.wstar, textvariable=self.v36, width=10, bg='white').grid(row=4, column=7)
 	Entry(self.wstar, textvariable=self.v37, width=10, bg='white').grid(row=4, column=8)
-	
+ 
 	Entry(self.wstar, textvariable=self.v40, width=10, bg='white').grid(row=5, column=1)
 	Checkbutton(self.wstar, variable=self.v41).grid(row=5, column=2)
 	OptionMenu(self.wstar, self.v42, *self.list_prior_type).grid(row=5, column=3)
@@ -796,7 +796,7 @@ def define_planet(self, edit = None) :
 	Label(self.wplanet, text='Periastron argument [deg]', anchor=W, justify='left').grid(row=9)
 	Label(self.wplanet, text='Transit epoch [BJD]', anchor=W, justify='left').grid(row=10)
 	Label(self.wplanet, text='Periastron epoch [BJD]', anchor=W, justify='left').grid(row=11)
-	
+ 
 	Label(self.wplanet, text='Parameter').grid(row=1, column=0)
 	Label(self.wplanet, text='Value').grid(row=1, column=1)
 	Label(self.wplanet, text='jump ?').grid(row=1, column=2)
@@ -807,7 +807,7 @@ def define_planet(self, edit = None) :
 	Label(self.wplanet, text='Value4').grid(row=1, column=7)
 	Label(self.wplanet, text='File').grid(row=1, column=8)
 	Label(self.wplanet, text='select').grid(row=1, column=9)
-	
+ 
 	self.v10 = DoubleVar()
 	self.v11 = IntVar()
 	self.v12 = StringVar()
@@ -1008,7 +1008,7 @@ def define_planet(self, edit = None) :
 	Entry(self.wplanet, textvariable=self.v25, width=10, bg='white').grid(row=3, column=6)
 	Entry(self.wplanet, textvariable=self.v26, width=10, bg='white').grid(row=3, column=7)
 	Entry(self.wplanet, textvariable=self.v27, width=10, bg='white').grid(row=3, column=8)
-	
+ 
 	Entry(self.wplanet, textvariable=self.v30, width=10, bg='white').grid(row=4, column=1)
 	Checkbutton(self.wplanet, variable=self.v31).grid(row=4, column=2)
 	OptionMenu(self.wplanet, self.v32, *self.list_prior_type).grid(row=4, column=3)
@@ -1017,7 +1017,7 @@ def define_planet(self, edit = None) :
 	Entry(self.wplanet, textvariable=self.v35, width=10, bg='white').grid(row=4, column=6)
 	Entry(self.wplanet, textvariable=self.v36, width=10, bg='white').grid(row=4, column=7)
 	Entry(self.wplanet, textvariable=self.v37, width=10, bg='white').grid(row=4, column=8)
-	
+ 
 	Entry(self.wplanet, textvariable=self.v40, width=10, bg='white').grid(row=5, column=1)
 	Checkbutton(self.wplanet, variable=self.v41).grid(row=5, column=2)
 	OptionMenu(self.wplanet, self.v42, *self.list_prior_type).grid(row=5, column=3)
@@ -1082,7 +1082,7 @@ def define_planet(self, edit = None) :
 	Entry(self.wplanet, textvariable=self.v106, width=10, bg='white').grid(row=11, column=7)
 	Entry(self.wplanet, textvariable=self.v107, width=10, bg='white').grid(row=11, column=8)
 	Radiobutton(self.wplanet, variable=self.v98, value=0).grid(row=11, column=9)
-	
+ 
 	Button(self.wplanet, text='SAVE & QUIT', command=lambda: self.save_planet(quit=1,save_edit=edit)).grid(row=12, column = 6)
 	Button(self.wplanet, text='SAVE', command=lambda: self.save_planet(save_edit=edit)).grid(row=12, column = 7)
 	Button(self.wplanet, text='QUIT', command=self.wplanet.destroy).grid(row=12, column = 8)
@@ -1098,7 +1098,7 @@ def define_binary(self, edit = None) :
 	Label(self.wbinary, text='Periastron argument [deg]', anchor=W, justify='left').grid(row=8)
 	Label(self.wbinary, text='Transit epoch [BJD]', anchor=W, justify='left').grid(row=9)
 	Label(self.wbinary, text='Periastron epoch [BJD]', anchor=W, justify='left').grid(row=10)
-	
+ 
 	Label(self.wbinary, text='Parameter').grid(row=4, column=0)
 	Label(self.wbinary, text='Value').grid(row=4, column=1)
 	Label(self.wbinary, text='jump ?').grid(row=4, column=2)
@@ -1161,7 +1161,7 @@ def define_binary(self, edit = None) :
 	self.v85 = DoubleVar()
 	self.v86 = DoubleVar()
 	self.v87 = StringVar()
-	
+ 
 	if edit:
 		self.v1.set(self.list_objects[self.select]['star1'])
 		self.v2.set(self.list_objects[self.select]['star2'])
@@ -1219,8 +1219,8 @@ def define_binary(self, edit = None) :
 			self.v87.set(self.list_objects[self.select]['Tp'][7])
 			self.v78.set(0)
 			self.v72.set('Normal')
-			
-			
+   
+   
 	else:
 		self.v1.set(self.star_list[0])
 		self.v2.set(self.star_list[1])
@@ -1234,7 +1234,7 @@ def define_binary(self, edit = None) :
 	OptionMenu(self.wbinary, self.v1, *self.star_list).grid(row=2, column=1, columnspan=8, sticky=W+E)
 
 	OptionMenu(self.wbinary, self.v2, *self.star_list).grid(row=3, column=1, columnspan=8, sticky=W+E)
-	
+ 
 	Entry(self.wbinary, textvariable=self.v30, width=10, bg='white').grid(row=5, column=1)
 	Checkbutton(self.wbinary, variable=self.v31).grid(row=5, column=2)
 	OptionMenu(self.wbinary, self.v32, *self.list_prior_type).grid(row=5, column=3)
@@ -1243,7 +1243,7 @@ def define_binary(self, edit = None) :
 	Entry(self.wbinary, textvariable=self.v35, width=10, bg='white').grid(row=5, column=6)
 	Entry(self.wbinary, textvariable=self.v36, width=10, bg='white').grid(row=5, column=7)
 	Entry(self.wbinary, textvariable=self.v37, width=10, bg='white').grid(row=5, column=8)
-	
+ 
 	Entry(self.wbinary, textvariable=self.v40, width=10, bg='white').grid(row=6, column=1)
 	Checkbutton(self.wbinary, variable=self.v41).grid(row=6, column=2)
 	OptionMenu(self.wbinary, self.v42, *self.list_prior_type).grid(row=6, column=3)
@@ -1290,7 +1290,7 @@ def define_binary(self, edit = None) :
 	Entry(self.wbinary, textvariable=self.v86, width=10, bg='white').grid(row=10, column=7)
 	Entry(self.wbinary, textvariable=self.v87, width=10, bg='white').grid(row=10, column=8)
 	Radiobutton(self.wbinary, variable=self.v78, value=0).grid(row=10, column=9)
-	
+ 
 	Button(self.wbinary, text='SAVE & QUIT', command=lambda: self.save_binary(quit=1,save_edit=edit)).grid(row=11, column = 6)
 	Button(self.wbinary, text='SAVE', command=lambda: self.save_binary(save_edit=edit)).grid(row=11, column = 7)
 	Button(self.wbinary, text='QUIT', command=self.wbinary.destroy).grid(row=11, column = 8)
@@ -1307,7 +1307,7 @@ def define_triple(self, edit = None) :
 	Label(self.wtriple, text='Periastron argument [deg]', anchor=W, justify='left').grid(row=8)
 	Label(self.wtriple, text='Transit epoch [BJD]', anchor=W, justify='left').grid(row=9)
 	Label(self.wtriple, text='Periastron epoch [BJD]', anchor=W, justify='left').grid(row=10)
-	
+ 
 	Label(self.wtriple, text='Parameter').grid(row=4, column=0)
 	Label(self.wtriple, text='Value').grid(row=4, column=1)
 	Label(self.wtriple, text='jump ?').grid(row=4, column=2)
@@ -1370,7 +1370,7 @@ def define_triple(self, edit = None) :
 	self.v85 = DoubleVar()
 	self.v86 = DoubleVar()
 	self.v87 = StringVar()
-	
+ 
 	if edit:
 		self.v1.set(self.list_objects[self.select]['object1'])
 		self.v2.set(self.list_objects[self.select]['object2'])
@@ -1428,7 +1428,7 @@ def define_triple(self, edit = None) :
 			self.v87.set(self.list_objects[self.select]['Tp'][7])
 			self.v78.set(0)
 			self.v72.set('Normal')
-		
+  
 	else:
 		self.v1.set(self.object_list[0])
 		self.v2.set(self.object_list[1])
@@ -1442,7 +1442,7 @@ def define_triple(self, edit = None) :
 	OptionMenu(self.wtriple, self.v1, *self.object_list).grid(row=2, column=1, columnspan=8, sticky=W+E)
 
 	OptionMenu(self.wtriple, self.v2, *self.object_list).grid(row=3, column=1, columnspan=8, sticky=W+E)
-	
+ 
 	Entry(self.wtriple, textvariable=self.v30, width=10, bg='white').grid(row=5, column=1)
 	Checkbutton(self.wtriple, variable=self.v31).grid(row=5, column=2)
 	OptionMenu(self.wtriple, self.v32, *self.list_prior_type).grid(row=5, column=3)
@@ -1451,7 +1451,7 @@ def define_triple(self, edit = None) :
 	Entry(self.wtriple, textvariable=self.v35, width=10, bg='white').grid(row=5, column=6)
 	Entry(self.wtriple, textvariable=self.v36, width=10, bg='white').grid(row=5, column=7)
 	Entry(self.wtriple, textvariable=self.v37, width=10, bg='white').grid(row=5, column=8)
-	
+ 
 	Entry(self.wtriple, textvariable=self.v40, width=10, bg='white').grid(row=6, column=1)
 	Checkbutton(self.wtriple, variable=self.v41).grid(row=6, column=2)
 	OptionMenu(self.wtriple, self.v42, *self.list_prior_type).grid(row=6, column=3)
@@ -1498,7 +1498,7 @@ def define_triple(self, edit = None) :
 	Entry(self.wtriple, textvariable=self.v86, width=10, bg='white').grid(row=10, column=7)
 	Entry(self.wtriple, textvariable=self.v87, width=10, bg='white').grid(row=10, column=8)
 	Radiobutton(self.wtriple, variable=self.v78, value=0).grid(row=10, column=9)
-	
+ 
 	Button(self.wtriple, text='SAVE & QUIT', command=lambda: self.save_triple(quit=1,save_edit=edit)).grid(row=11, column = 6)
 	Button(self.wtriple, text='SAVE', command=lambda: self.save_triple(save_edit=edit)).grid(row=11, column = 7)
 	Button(self.wtriple, text='QUIT', command=self.wtriple.destroy).grid(row=11, column = 8)
@@ -1517,7 +1517,7 @@ def define_plansys(self, edit = None) :
 	Label(self.wplansys, text='Planet 7', anchor=W, justify='left').grid(row=9)
 	Label(self.wplansys, text='Planet 8', anchor=W, justify='left').grid(row=10)
 	Label(self.wplansys, text='Planet 9', anchor=W, justify='left').grid(row=11)
-	
+ 
 	self.v1 = StringVar()
 	self.v2 = StringVar()
 	self.v3 = StringVar()
@@ -1548,7 +1548,7 @@ def define_plansys(self, edit = None) :
 		except : self.v9.set('None')
 		try : self.v10.set(self.list_objects[self.select]['planet9'])
 		except : self.v10.set('None')
-		
+  
 	else:
 		self.v1.set(self.star_list[0])
 		self.v2.set(self.planet_list[1])
@@ -1559,8 +1559,8 @@ def define_plansys(self, edit = None) :
 		self.v7.set('None')
 		self.v8.set('None')
 		self.v9.set('None')
-		self.v10.set('None')	
-	
+		self.v10.set('None') 
+ 
 	OptionMenu(self.wplansys, self.v1, *self.star_list).grid(row=2, column=1, columnspan=5, sticky=W+E)
 	OptionMenu(self.wplansys, self.v2, *self.planet_list).grid(row=3, column=1, columnspan=5, sticky=W+E)
 	OptionMenu(self.wplansys, self.v3, *self.planet_list).grid(row=4, column=1, columnspan=5, sticky=W+E)
@@ -1571,7 +1571,7 @@ def define_plansys(self, edit = None) :
 	OptionMenu(self.wplansys, self.v8, *self.planet_list).grid(row=9, column=1, columnspan=5, sticky=W+E)
 	OptionMenu(self.wplansys, self.v9, *self.planet_list).grid(row=10, column=1, columnspan=5, sticky=W+E)
 	OptionMenu(self.wplansys, self.v10, *self.planet_list).grid(row=11, column=1, columnspan=5, sticky=W+E)
-	
+ 
 	Button(self.wplansys, text='SAVE & QUIT', command=lambda: self.save_plansys(quit=1,save_edit=edit)).grid(row=12, column = 2)
 	Button(self.wplansys, text='SAVE', command=lambda: self.save_plansys(save_edit=edit)).grid(row=12, column = 3)
 	Button(self.wplansys, text='QUIT', command=self.wplansys.destroy).grid(row=12, column = 4)
@@ -1600,7 +1600,7 @@ def define_fitobs(self, edit = None) :
 	Label(self.wfit, text='vsini [km/s]', anchor=W, justify='left').grid(row=18)
 	Label(self.wfit, text='Spin-Orbit angle [deg]', anchor=W, justify='left').grid(row=19)
 
-	
+ 
 	Label(self.wfit, text='Parameter').grid(row=1, column=0)
 	Label(self.wfit, text='Value').grid(row=1, column=1)
 	Label(self.wfit, text='jump ?').grid(row=1, column=2)
@@ -1611,7 +1611,7 @@ def define_fitobs(self, edit = None) :
 	Label(self.wfit, text='Value4').grid(row=1, column=7)
 	Label(self.wfit, text='File').grid(row=1, column=8)
 	Label(self.wfit, text='select').grid(row=1, column=9)
-	
+ 
 	self.v10 = DoubleVar()
 	self.v11 = IntVar()
 	self.v12 = StringVar()
@@ -1950,7 +1950,7 @@ def define_fitobs(self, edit = None) :
 	Entry(self.wfit, textvariable=self.v25, width=10, bg='white').grid(row=3, column=6)
 	Entry(self.wfit, textvariable=self.v26, width=10, bg='white').grid(row=3, column=7)
 	Entry(self.wfit, textvariable=self.v27, width=10, bg='white').grid(row=3, column=8)
-	
+ 
 	Entry(self.wfit, textvariable=self.v30, width=10, bg='white').grid(row=4, column=1)
 	Checkbutton(self.wfit, variable=self.v31).grid(row=4, column=2)
 	OptionMenu(self.wfit, self.v32, *self.list_prior_type).grid(row=4, column=3)
@@ -1959,7 +1959,7 @@ def define_fitobs(self, edit = None) :
 	Entry(self.wfit, textvariable=self.v35, width=10, bg='white').grid(row=4, column=6)
 	Entry(self.wfit, textvariable=self.v36, width=10, bg='white').grid(row=4, column=7)
 	Entry(self.wfit, textvariable=self.v37, width=10, bg='white').grid(row=4, column=8)
-	
+ 
 	Entry(self.wfit, textvariable=self.v40, width=10, bg='white').grid(row=5, column=1)
 	Checkbutton(self.wfit, variable=self.v41).grid(row=5, column=2)
 	OptionMenu(self.wfit, self.v42, *self.list_prior_type).grid(row=5, column=3)

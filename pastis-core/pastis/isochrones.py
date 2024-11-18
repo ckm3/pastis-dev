@@ -3,7 +3,7 @@ Module to deal with isochrones.
 """
 
 import sys
-import numpy as n
+import numpy as np
 from math import log10
 from scipy import interpolate
 
@@ -22,10 +22,10 @@ def interpol_tracks(input_file):
         input_file, usecols=(2, 3, 4, 5, 6, 7, 8), unpack=True, skiprows=1
     )
 
-    zu = n.unique(z)
+    zu = np.unique(z)
 
     global miniu
-    miniu = n.unique(mini)
+    miniu = np.unique(mini)
 
     global minz, maxz, minminit, maxminit
     minz = min(zu)
@@ -47,15 +47,15 @@ def interpol_tracks(input_file):
 
             if j == 0 and i == 0:
                 sys.stdout.write("Interpolating tracks... %02d %%" % nip)
-            elif n.round(nip) % 1 == 0:
+            elif np.round(nip) % 1 == 0:
                 sys.stdout.write("\b" * 4 + "%02d %%" % nip)
             sys.stdout.flush()
 
-            cond = n.logical_and(n.equal(z, zz), n.equal(mini, mm))
+            cond = np.logical_and(np.equal(z, zz), np.equal(mini, mm))
 
             # Check if there is only one node in the grid with mm or zz
 
-            tt = n.compress(cond, logage)
+            tt = np.compress(cond, logage)
             if len(tt) == 0:
                 continue
             # Define normalised lifetime of star to used as interpolating
@@ -66,12 +66,12 @@ def interpol_tracks(input_file):
             Y[(mm, zz)].extend([tt.min(), tt.max()])
             for y in (logT, logg, logL, mact):
 
-                y0 = n.compress(cond, y)
+                y0 = np.compress(cond, y)
                 yi = interpolate.interp1d(xx, y0)
                 Y[(mm, zz)].append(yi)
 
     global verticesY
-    verticesY = n.array(list(Y.keys()))
+    verticesY = np.array(list(Y.keys()))
 
     print("... DONE! \n")
     return
@@ -90,13 +90,13 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
 
     # Compute radius and density
     global dens
-    R = n.sqrt(10**logL * (5777.0 / 10**logT) ** 4.0)
+    R = np.sqrt(10**logL * (5777.0 / 10**logT) ** 4.0)
     dens = mact / R**3.0
 
-    zu = n.sort(n.unique(z))
+    zu = np.sort(np.unique(z))
 
     global miniu
-    miniu = n.unique(mini)
+    miniu = np.unique(mini)
 
     global minz, maxz, minminit, maxminit
     minz = min(zu)
@@ -111,13 +111,13 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
 
     if "Starevol" in input_file:
         ## Only keep points from main sequence and below age of Universe
-        condMS = n.logical_and(phase > 0.0, logage < AgeUniverse)
+        condMS = np.logical_and(phase > 0.0, logage < AgeUniverse)
 
     elif "Geneva" in input_file:
         condMS = logage < AgeUniverse
 
     elif "Parsec" in input_file:
-        condMS = n.logical_and(phase > 0.0, logage < AgeUniverse)
+        condMS = np.logical_and(phase > 0.0, logage < AgeUniverse)
 
     for i, zz in enumerate(zu[:-1]):
 
@@ -128,13 +128,13 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
 
             if j == 0 and i == 0:
                 sys.stdout.write("Preparing tracks... %02d %%" % nip)
-            elif n.round(nip) % 1 == 0:
+            elif np.round(nip) % 1 == 0:
                 sys.stdout.write("\b" * 4 + "%02d %%" % nip)
             sys.stdout.flush()
 
             ## Keep only one z and Mini
-            condTrack = n.logical_and(n.equal(z, zz), n.equal(mini, mm))
-            condTrack2 = n.logical_and(n.equal(z, zu[i + 1]), n.equal(mini, mm))
+            condTrack = np.logical_and(np.equal(z, zz), np.equal(mini, mm))
+            condTrack2 = np.logical_and(np.equal(z, zu[i + 1]), np.equal(mini, mm))
 
             ### Find condition for main sequence. This is model dependent.
             if "Dartmouth" in input_file:
@@ -143,22 +143,22 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
                 ## To do this, find for each track the maximum difference in the
                 ## time array. This is the moment when the MS kicks off.
 
-                tt = n.compress(condTrack, logage)
+                tt = np.compress(condTrack, logage)
 
                 if len(tt) == 0:
                     continue
 
                 # Get the time of MS beginning
-                tZAMS = tt[n.argmax(n.diff(tt)) + 1]
+                tZAMS = tt[np.argmax(np.diff(tt)) + 1]
 
                 # Write the condition
-                condMS = n.logical_and(logage >= tZAMS, logage < AgeUniverse)
+                condMS = np.logical_and(logage >= tZAMS, logage < AgeUniverse)
 
-            condd = n.logical_and(condMS, condTrack)
-            condd2 = n.logical_and(condMS, condTrack2)
+            condd = np.logical_and(condMS, condTrack)
+            condd2 = np.logical_and(condMS, condTrack2)
 
-            tt = n.compress(condd, logage)
-            tt2 = n.compress(condd2, logage)
+            tt = np.compress(condd, logage)
+            tt2 = np.compress(condd2, logage)
 
             if len(tt) < 2 or len(tt2) < 2:
                 continue
@@ -169,10 +169,10 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
             xx2 = (tt2 - min(tt2)) / (max(tt2) - min(tt2))
 
             # Concatenate life arrays
-            xxc = n.sort(n.concatenate((xx, xx2)))
+            xxc = np.sort(np.concatenate((xx, xx2)))
 
             # Concatenate age arrays
-            ttc = n.sort(n.concatenate((tt, tt2)))
+            ttc = np.sort(np.concatenate((tt, tt2)))
 
             T[(mm, zz, zu[i + 1])] = []
             T[(mm, zz, zu[i + 1])].extend(
@@ -184,16 +184,16 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
 
             for y in (logT, logg, dens, mact, logL):
 
-                y0 = n.compress(condd, y)
-                y02 = n.compress(condd2, y)
+                y0 = np.compress(condd, y)
+                y02 = np.compress(condd2, y)
 
                 yi = interpolate.interp1d(xx, y0)(xxc)
                 yi2 = interpolate.interp1d(xx2, y02)(xxc)
 
-                T[(mm, zz, zu[i + 1])].append(n.array((yi, yi2)))
+                T[(mm, zz, zu[i + 1])].append(np.array((yi, yi2)))
 
     global verticesT
-    verticesT = n.array(list(T.keys()))
+    verticesT = np.array(list(T.keys()))
 
     print("... DONE! \n")
     return
@@ -202,11 +202,11 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
 def get_stellarparams(z, logage, minit, method="linear"):
 
     ## Check that input z and minit are within absolute limits of grid
-    if n.logical_or(n.greater(z, maxz), n.less(z, minz)):
+    if np.logical_or(np.greater(z, maxz), np.less(z, minz)):
         raise EvolTrackError("Metallicity out of range")
         return
 
-    if n.logical_or(n.greater(minit, maxminit), n.less(minit, minminit)):
+    if np.logical_or(np.greater(minit, maxminit), np.less(minit, minminit)):
         raise EvolTrackError("Initial mass out of range")
         return
 
@@ -217,20 +217,20 @@ def get_stellarparams(z, logage, minit, method="linear"):
     vertdist = dx * dx + dy * dy
 
     ## Evaluate if closest point in the grid corresponds to a dead star
-    tmax = Y[tuple(verticesY[n.argmin(vertdist)])][1]
-    tmin = Y[tuple(verticesY[n.argmin(vertdist)])][0]
+    tmax = Y[tuple(verticesY[np.argmin(vertdist)])][1]
+    tmin = Y[tuple(verticesY[np.argmin(vertdist)])][0]
 
     xx = (logage - tmin) / (tmax - tmin)
 
-    if n.logical_or(n.less_equal(logage, tmin), n.greater_equal(logage, tmax)):
+    if np.logical_or(np.less_equal(logage, tmin), np.greater_equal(logage, tmax)):
         raise EvolTrackError("Logage out of range for closest track node.")
         return
 
     ## Check if requested point corresponds to a node; in that case, simply
     ## return values for that node
     if min(vertdist) < 1e-10:
-        vals = n.zeros((4,), "d")
-        interpfuncs = Y[tuple(verticesY[n.argmin(vertdist)])][2:]
+        vals = np.zeros((4,), "d")
+        interpfuncs = Y[tuple(verticesY[np.argmin(vertdist)])][2:]
 
         # Define normalised stellar lifetime
         xx = (logage - tmin) / (tmax - tmin)
@@ -245,17 +245,17 @@ def get_stellarparams(z, logage, minit, method="linear"):
 
         # Write conditions for node to be in each quadrant
         xy = dx * dy
-        cond1 = n.logical_and(n.greater_equal(xy, 0), n.greater(dx, 0))
-        if n.any(cond1):
+        cond1 = np.logical_and(np.greater_equal(xy, 0), np.greater(dx, 0))
+        if np.any(cond1):
             condsq.append(cond1)
-        cond2 = n.logical_and(n.less(xy, 0), n.less_equal(dx, 0))
-        if n.any(cond2):
+        cond2 = np.logical_and(np.less(xy, 0), np.less_equal(dx, 0))
+        if np.any(cond2):
             condsq.append(cond2)
-        cond3 = n.logical_and(n.greater_equal(xy, 0), n.less(dx, 0))
-        if n.any(cond3):
+        cond3 = np.logical_and(np.greater_equal(xy, 0), np.less(dx, 0))
+        if np.any(cond3):
             condsq.append(cond3)
-        cond4 = n.logical_and(n.less(xy, 0), n.greater_equal(dx, 0))
-        if n.any(cond4):
+        cond4 = np.logical_and(np.less(xy, 0), np.greater_equal(dx, 0))
+        if np.any(cond4):
             condsq.append(cond4)
 
         if len(condsq) < 3:
@@ -265,20 +265,20 @@ def get_stellarparams(z, logage, minit, method="linear"):
         # List with vertices on each quadrant
         verticesq = []
         for cond in condsq:
-            verticesi = n.compress(cond, verticesY, axis=0)
+            verticesi = np.compress(cond, verticesY, axis=0)
             verticesq.append(verticesi)
 
         # List of vertices to use for interpolation
         vs = []
         for i in range(len(condsq)):
             ## Get closest grid node per quadrant
-            vi = verticesq[i][n.argmin(n.compress(condsq[i], vertdist))]
+            vi = verticesq[i][np.argmin(np.compress(condsq[i], vertdist))]
 
             ## Check vertice correspond to existing tracks
             vertinfo = Y[tuple(vi)]
             tmin = vertinfo[0]
             tmax = vertinfo[1]
-            if n.logical_or(n.less_equal(logage, tmin), n.greater_equal(logage, tmax)):
+            if np.logical_or(np.less_equal(logage, tmin), np.greater_equal(logage, tmax)):
                 continue
 
             vs.append(vi)
@@ -291,11 +291,11 @@ def get_stellarparams(z, logage, minit, method="linear"):
         vs = verticesY.copy()
 
     # Array that will hold extreme track ages for vertices
-    tlims0 = n.zeros((2, len(vs)), dtype="d")
+    tlims0 = np.zeros((2, len(vs)), dtype="d")
     # Array that will hold parameters for vertices
-    vals0 = n.zeros((4, len(vs)), dtype="d")
+    vals0 = np.zeros((4, len(vs)), dtype="d")
     # Array that will hold interpolated parameters
-    vals = n.zeros((4,), dtype="d")
+    vals = np.zeros((4,), dtype="d")
 
     for ii, vv in enumerate(vs):
         vertinfo = Y[tuple(vv)]
@@ -304,11 +304,11 @@ def get_stellarparams(z, logage, minit, method="linear"):
         tlims0[:, ii] = [vertinfo[0], vertinfo[1]]
 
     # X and Y position of nodes
-    invalues = n.array(vs)
+    invalues = np.array(vs)
 
     ## Define normalised lifetime for interpolated track
     # Get interpolated tmin and tmax
-    aa = n.array([minit, z]).reshape((1, 2))
+    aa = np.array([minit, z]).reshape((1, 2))
 
     tmini = interpolate.griddata(invalues, tlims0[0, :], aa, method=method)
     tmaxi = interpolate.griddata(invalues, tlims0[1, :], aa, method=method)
@@ -326,7 +326,7 @@ def get_stellarparams(z, logage, minit, method="linear"):
     # Interpolate using griddata
     for ii in range(4):
         vals[ii] = interpolate.griddata(invalues, vals0[ii], (minit, z), method=method)
-        if n.isnan(vals[ii]):
+        if np.isnan(vals[ii]):
             raise EvolTrackError("Impossible to triangulate!")
 
     return vals
@@ -364,7 +364,7 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
     """
 
     # Check that input z and minit are within absolute limits of grid
-    if n.logical_or(n.greater(z, maxz), n.less(z, minz)):
+    if np.logical_or(np.greater(z, maxz), np.less(z, minz)):
         raise EvolTrackError("Metallicity out of range")
         return
 
@@ -377,16 +377,16 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
 
     # Start interpolation in metallicity; miniu is a global variable.
     for mm in miniu:
-        zvi = n.sort(n.compress(verticesT[:, 0] == mm, verticesT[:, 1]))
-        zvf = n.sort(n.compress(verticesT[:, 0] == mm, verticesT[:, 2]))
+        zvi = np.sort(np.compress(verticesT[:, 0] == mm, verticesT[:, 1]))
+        zvf = np.sort(np.compress(verticesT[:, 0] == mm, verticesT[:, 2]))
 
-        if len(zvi) == 0 or z < n.min(zvi) or z > n.max(zvf):
+        if len(zvi) == 0 or z < np.min(zvi) or z > np.max(zvf):
             # z outside metallicity range, skip mass
             continue
 
-        indz = n.searchsorted(zvi, z)
+        indz = np.searchsorted(zvi, z)
 
-        z0 = n.array([zvi[indz - 1], zvf[indz - 1]])
+        z0 = np.array([zvi[indz - 1], zvf[indz - 1]])
 
         # Get factor for linear interpolation
         fmin = (z - z0[0]) / (z0[1] - z0[0])
@@ -396,8 +396,8 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
         TT = T[(mm, z0[0], z0[1])]
 
         # Obtain for each parameter of interest, values at the nodes
-        Tmin0 = n.zeros(2)
-        Tmax0 = n.zeros(2)
+        Tmin0 = np.zeros(2)
+        Tmax0 = np.zeros(2)
         logages0 = []
         lifes0 = []
 
@@ -405,7 +405,7 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
         xx = TT[2]
 
         # Define array that will contain intepolated tracks + life array used.
-        valsmm = n.zeros((nparams + 1, len(xx)))
+        valsmm = np.zeros((nparams + 1, len(xx)))
 
         # Assign interpolated values
         for ip in range(nparams):
@@ -424,8 +424,8 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
     if len(nodes) < 2:
         raise EvolTrackError("Not enough tracks to do interpolation.")
 
-    Tmin = n.array(Tmin)
-    Tmax = n.array(Tmax)
+    Tmin = np.array(Tmin)
+    Tmax = np.array(Tmax)
     ### End of interpolation in metallicity
 
     dists = []
@@ -446,14 +446,14 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
             dist2 = (1 - 10 ** (logTi - logT)) ** 2 + (1 - 10 ** (loggi - y)) ** 2
 
         # Keep shortest distance
-        dists.append(n.min(dist2))
+        dists.append(np.min(dist2))
 
         # Get output parameter for this node
         macti = node[-2, :]
         logLi = node[-1, :]
 
-    dists = n.array(dists)
-    isort = n.argsort(dists)
+    dists = np.array(dists)
+    isort = np.argsort(dists)
 
     # Get only N closest tracks
     closesttracks = []
@@ -464,10 +464,10 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
 
     ## Define array that will contain, for each node, Mact, logL, life,
     ## Tmin, Tmax of closest point in track
-    vals0 = n.zeros((N * Nt, 3))
-    x0 = n.zeros((N * Nt, 2))
+    vals0 = np.zeros((N * Nt, 3))
+    x0 = np.zeros((N * Nt, 2))
 
-    valsint = n.zeros(5)
+    valsint = np.zeros(5)
 
     # Iterate over the N closest tracks
     for ii, node in enumerate(closesttracks):
@@ -493,7 +493,7 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
         logagei = lifei * (Tmaxclosest[ii] - Tminclosest[ii]) + Tminclosest[ii]
 
         ## Keep Nt closest points per track
-        indt = n.argsort(dist2)[:Nt]
+        indt = np.argsort(dist2)[:Nt]
 
         ## Get node points for interpolation
         x0[ii * Nt : ii * Nt + len(indt), 0] = logTi[indt]
@@ -506,10 +506,10 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
 
     # To deal with the case where Nt is smaller than the number of points
     # in a given track
-    indices = n.argwhere(x0[:, 0] != 0)
+    indices = np.argwhere(x0[:, 0] != 0)
     indices = indices.reshape(indices.shape[:-1])
-    xx0 = n.take(x0, indices, axis=0)
-    vals0 = n.take(vals0, indices, axis=0)
+    xx0 = np.take(x0, indices, axis=0)
+    vals0 = np.take(vals0, indices, axis=0)
 
     ## Interpolate using all tracks
     for ip in range(vals0.shape[1]):
@@ -517,19 +517,19 @@ def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
             xx0, vals0[:, ip], (logT, y), method="linear"
         )
 
-    if valsint[2] > n.max(Tmaxclosest) or valsint[2] < n.min(Tminclosest):
+    if valsint[2] > np.max(Tmaxclosest) or valsint[2] < np.min(Tminclosest):
         raise EvolTrackError("Requested point is outside limits of tracks.")
 
-    if n.any(n.isnan(valsint)):
+    if np.any(np.isnan(valsint)):
         raise EvolTrackError("Impossible to interpolate!")
 
     return valsint[0], valsint[1], valsint[2]
 
 
 def get_track(z, minit, t):
-    teff = n.zeros(t.shape)
-    logg = n.zeros(t.shape)
-    logL = n.zeros(t.shape)
+    teff = np.zeros(t.shape)
+    logg = np.zeros(t.shape)
+    logL = np.zeros(t.shape)
 
     for i, tt in enumerate(t):
         try:
@@ -540,12 +540,12 @@ def get_track(z, minit, t):
         logg[i] = vals[1]
         logL[i] = vals[2]
 
-    teff = n.compress(n.not_equal(teff, 0.0), teff)
-    logg = n.compress(n.not_equal(logg, 0.0), logg)
-    logL = n.compress(n.not_equal(logL, 0.0), logL)
+    teff = np.compress(np.not_equal(teff, 0.0), teff)
+    logg = np.compress(np.not_equal(logg, 0.0), logg)
+    logL = np.compress(np.not_equal(logL, 0.0), logL)
 
     # Radius in Solar Radii
-    R = n.sqrt(10**logL * (5777.0 / teff) ** 4.0)
+    R = np.sqrt(10**logL * (5777.0 / teff) ** 4.0)
     # Rcgs = n.sqrt(G*minit*Msun/10**logg*1e6)
     # R = Rcgs/(Rsun*1e2)
     # Dens = 10**logg/Rcgs/(G*Msun/Rsun**3.0) # G*M/R^3
@@ -582,7 +582,7 @@ def plot_maps(Y, t, istime=True):
         mini.append(mini0)
         z.append(z0)
 
-    mini, z, logT, logg, logL, mact = map(n.array, (mini, z, logT, logg, logL, mact))
+    mini, z, logT, logg, logL, mact = map(np.array, (mini, z, logT, logg, logL, mact))
 
     for zz, zlabel in zip((logT, logg, logL, mact), ("logT", "logg", "logL", "Mact")):
         f1 = p.figure()
@@ -620,9 +620,9 @@ def interpol_WD(input_file):
         input_file, usecols=(0, 1, 2, 27), unpack=True, skiprows=2
     )
 
-    logage = n.log10(age)
+    logage = np.log10(age)
 
-    invalues = n.array((teff, logg)).transpose()
+    invalues = np.array((teff, logg)).transpose()
 
     global WDmact, WDlogage
     # WDmact = interpolate.interp2d(teff,logg,mact,kind='cubic')

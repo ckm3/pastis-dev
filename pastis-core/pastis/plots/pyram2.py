@@ -1,4 +1,4 @@
-import numpy as n
+import numpy as np
 from scipy import stats
 import pylab as p
 
@@ -11,7 +11,7 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
     
     vd = C.get_value_dict()
 
-    nBI = n.round(len(vd.values()[0])*BI, 0)
+    nBI = np.round(len(vd.values()[0])*BI, 0)
     if Nlast is not None:
         nf = Nlast
     else:
@@ -22,8 +22,8 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
     fig.subplots_adjust(bottom= 0.1, top=0.95, hspace = 0.0, wspace = 0.0)
 
     axs = []
-    for i, key1 in enumerate(n.sort(vd.keys())[1:]):
-        for j, key2 in enumerate(n.sort(vd.keys())[:-1]):
+    for i, key1 in enumerate(np.sort(vd.keys())[1:]):
+        for j, key2 in enumerate(np.sort(vd.keys())[:-1]):
             if j > i: continue
             ax = fig.add_subplot(Nvar-1, Nvar-1, i*(Nvar - 1) + j + 1)
             axs.append(ax)
@@ -31,11 +31,11 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
 
             # Set position of major ticks
             xl = ax.get_xlim(); dxl = xl[1]-xl[0]
-            xts = n.arange(xl[0], xl[1], dxl/4.0)
+            xts = np.arange(xl[0], xl[1], dxl/4.0)
             ax.xaxis.set_major_locator(p.FixedLocator(xts[1:]))
 
             yl = ax.get_ylim(); dyl = yl[1]-yl[0]
-            yts = n.arange(yl[0], yl[1], dyl/4.0)
+            yts = np.arange(yl[0], yl[1], dyl/4.0)
             ax.yaxis.set_major_locator(p.FixedLocator(yts[1:]))
 
             if i != len(vd.keys())-2:
@@ -49,7 +49,7 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
                 else:
                     ndecimal = 1
 
-                ax.xaxis.set_major_formatter(p.FixedFormatter(n.round(xts[1:],
+                ax.xaxis.set_major_formatter(p.FixedFormatter(np.round(xts[1:],
                                                                       ndecimal)
                                                               )
                                              )
@@ -58,8 +58,8 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
                     xtl.set_rotation(90)
                     xtl.set_fontsize(11)
 
-		# Modify key
-		key2 = key2[key2.find('_'):]
+  # Modify key
+key2 = key2[key2.find('_'):]
                 ax.set_xlabel(key2, fontsize = 10)
 
             if j != 0:
@@ -74,7 +74,7 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
                     ndecimal = 1
                 
 
-                ax.yaxis.set_major_formatter(p.FixedFormatter(n.round(yts[1:],
+                ax.yaxis.set_major_formatter(p.FixedFormatter(np.round(yts[1:],
                                                                       ndecimal)
                                                               )
                                              )
@@ -206,7 +206,7 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
     else:
         vd = C.get_value_dict()
 
-    nBI = n.int(n.round(len(vd.values()[0])*BI, 0))
+    nBI = np.int(np.round(len(vd.values()[0])*BI, 0))
     if Nlast != None:
         nf = Nlast
     else:
@@ -215,16 +215,16 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
     Nvar = len(vd.keys())
 
     fig.subplots_adjust(bottom= 0.15, left = 0.15, top=0.9, right=0.9,
-			hspace = 0.0, wspace = 0.0)
+   hspace = 0.0, wspace = 0.0)
 
     axs = []
 
     if transpose:
-        keys1 = n.sort(vd.keys())[:-1]
-        keys2 = n.sort(vd.keys())[1:]
+        keys1 = np.sort(vd.keys())[:-1]
+        keys2 = np.sort(vd.keys())[1:]
     else:
-        keys2 = n.sort(vd.keys())[:-1]
-        keys1 = n.sort(vd.keys())[1:]
+        keys2 = np.sort(vd.keys())[:-1]
+        keys1 = np.sort(vd.keys())[1:]
         
     for i, key1 in enumerate(keys1):
         for j, key2 in enumerate(keys2):
@@ -233,7 +233,7 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
             axs.append(ax)
 
             #ax.plot(vd[key2][nBI: nf: sample], vd[key1][nBI: nf: sample], 'k,')
-            H, xedges, yedges = n.histogram2d(vd[key2][nBI: nf: sample],
+            H, xedges, yedges = np.histogram2d(vd[key2][nBI: nf: sample],
                                               vd[key1][nBI: nf: sample],
                                               bins = (nbins, nbins),
                                               normed = False)
@@ -245,7 +245,7 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
                 # Find Bayesian contour limits
                 lims = find_limits(H, confidence_levels)
 
-            lims = lims[::-1]; lims.append(n.sum(H))
+            lims = lims[::-1]; lims.append(np.sum(H))
 
             """
             ax.contourf(0.5*(xedges[:-1] + xedges[1:]),
@@ -254,7 +254,7 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
             """
 
             # Imshow version (WORKS!)
-	    ax.imshow(H.T, extent = (xedges[0], xedges[-1],
+     ax.imshow(H.T, extent = (xedges[0], xedges[-1],
                                    yedges[0], yedges[-1]),
                       interpolation=interpolation, aspect='auto',
                       cmap=cmap)
@@ -269,16 +269,16 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
             
             # Set position of major ticks
             xl = ax.get_xlim(); dxl = xl[1]-xl[0]
-            xts = n.arange(xl[0], xl[1], dxl/4.0)
+            xts = np.arange(xl[0], xl[1], dxl/4.0)
             ax.xaxis.set_major_locator(p.FixedLocator(xts[1:]))
 
             yl = ax.get_ylim(); dyl = yl[1]-yl[0]
-            yts = n.arange(yl[0], yl[1], dyl/4.0)
+            yts = np.arange(yl[0], yl[1], dyl/4.0)
             ax.yaxis.set_major_locator(p.FixedLocator(yts[1:]))
 
             if i != len(vd.keys())-2:
                 ax.xaxis.set_major_formatter(p.NullFormatter())
-		ax.xaxis.set_ticks_position('none')
+  ax.xaxis.set_ticks_position('none')
             else:
                 ## Trick to get nice ticklabels
                 s = '%e'%dxl
@@ -288,11 +288,11 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
                 else:
                     ndecimal = 1
 
-                ax.xaxis.set_major_formatter(p.FixedFormatter(n.round(xts[1:],
+                ax.xaxis.set_major_formatter(p.FixedFormatter(np.round(xts[1:],
                                                                       ndecimal)
                                                               )
                                              )
-		ax.xaxis.set_ticks_position('bottom')
+  ax.xaxis.set_ticks_position('bottom')
 
                 
                 for xtl in ax.get_xticklabels():
@@ -316,11 +316,11 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
                     else:
                         key2m = key2.replace('_', '\n')
 
-		ax.set_xlabel(key2m, fontsize = labelfontsize)
+ax.set_xlabel(key2m, fontsize = labelfontsize)
 
             if j != 0:
                 ax.yaxis.set_major_formatter(p.NullFormatter())
-		ax.yaxis.set_ticks_position('none')
+  ax.yaxis.set_ticks_position('none')
             else:
                 # Trick to get nice ticklabels
                 s = '%e'%dyl
@@ -331,8 +331,8 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
                     ndecimal = 1
                 
 
-                ax.yaxis.set_major_formatter(p.FixedFormatter(n.round(yts[1:], ndecimal)))
-		ax.yaxis.set_ticks_position('left')
+                ax.yaxis.set_major_formatter(p.FixedFormatter(np.round(yts[1:], ndecimal)))
+  ax.yaxis.set_ticks_position('left')
                 for ytl in ax.get_yticklabels():
                     ytl.set_fontsize(fontsize)
                     
@@ -353,35 +353,35 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
                 ax.set_ylabel(key1m, fontsize = labelfontsize)
 
 
-	    ### Add plot of histogram above top panels
-	    if addhists:
+     ### Add plot of histogram above top panels
+if addhists:
 		if i == j:
 		    axpos = ax.get_position().get_points()
 		    width = axpos[1, 0] - axpos[0, 0]
 		    height = axpos[1, 1] - axpos[0, 1]
 		    axh = fig.add_axes((axpos[0, 0], axpos[1, 1], width,
-					height/2.0)
-					)
+     height/2.0)
+     )
 
 		    axh.hist(vd[key2][nBI: nf: sample], nbins,
-                             histtype = 'step', color = 'k')
+		                           histtype = 'step', color = 'k')
                         
-                    axh.set_xlim(xl)
+		                  axh.set_xlim(xl)
 		    axh.xaxis.set_ticks_position('bottom')
 		    axh.yaxis.set_ticks_position('none')
 		    axh.xaxis.set_major_formatter(p.NullFormatter())
 		    axh.yaxis.set_major_formatter(p.NullFormatter())
 		    axh.xaxis.set_major_locator(p.FixedLocator(xts[1:]))
-		    
-                    if mapdict is not None and key2 in mapdict:
+      
+		                  if mapdict is not None and key2 in mapdict:
                         axh.axvline(mapdict[key2], **mapfmt)
 
-                    if i == len(vd.keys())-2: #Last row
+		                  if i == len(vd.keys())-2: #Last row
 			axh2 = fig.add_axes((axpos[1, 0], axpos[0, 1], width/2,
-					    height)
+			      height)
 			    )
 			axh2.hist(vd[key1][nBI: nf: sample], nbins, histtype = 'step',
-				  color = 'k', orientation = 'horizontal')
+			   color = 'k', orientation = 'horizontal')
 			axh2.set_ylim(yl)
 			axh2.xaxis.set_ticks_position('none')
 			axh2.yaxis.set_ticks_position('left')
@@ -389,7 +389,7 @@ def pyramid_cont(C, BI = 0.0, Nlast = None, sample = 1, filename = None,
 			axh2.yaxis.set_major_formatter(p.NullFormatter())
 			axh2.yaxis.set_major_locator(p.FixedLocator(yts[1:]))
 
-                        if mapdict is not None and key1 in mapdict:
+			                     if mapdict is not None and key1 in mapdict:
                             axh2.axhline(mapdict[key1], **mapfmt)
 
     #labeltext = label+'\nNiteration = %d;\nBurnIn = %d%%'%(nf -1, BI*100)
@@ -406,11 +406,11 @@ def find_limits(H, conflevels):
     Find the limits for a pyramid plot using a Bayesian approach.
     """
 
-    N = n.sum(H)
+    N = np.sum(H)
 
     # Sort number of elements per 2D bin.
-    ind = n.argsort(H.flatten())[::-1]
-    Hs  = n.sort(H.flatten())[::-1]
+    ind = np.argsort(H.flatten())[::-1]
+    Hs  = np.sort(H.flatten())[::-1]
 
     bin1 = []; numpoints1 = 0
     bin2 = []; numpoints2 = 0

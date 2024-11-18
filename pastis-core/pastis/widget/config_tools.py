@@ -4,7 +4,7 @@ import tkFileDialog
 import tkMessageBox
 
 def save_prior(self):
-	import numpy as n
+	import numpy as np
 	from scipy import stats 
 	function = self.v6.get()
 	#function = function.replace('x2', self.v2.get())
@@ -19,7 +19,7 @@ def save_prior(self):
 #	self.wprior.destroy()
 
 def save_prior2(self):
-	import numpy as n
+	import numpy as np
 	from scipy import stats 
 	function = self.v6.get()
 	#function = function.replace('x2', self.v2.get())
@@ -59,7 +59,7 @@ def define_prior(self):
 	Label(self.wprior, text='Function\n(x1, x2, x3, x4, x5)').grid(row=6, column = 1)
 	self.v6 = StringVar()
 	Entry(self.wprior, textvariable = self.v6, width=40, bg='white').grid(row=6, column=2, columnspan=8, sticky=W+E)
-	
+ 
 	self.v7 = DoubleVar()
 	self.v8 = IntVar()
 	self.v8.set(0)
@@ -70,7 +70,7 @@ def define_prior(self):
 	self.v13 = DoubleVar()
 	self.v14 = StringVar()
 	self.v9.set('Normal')
-	
+ 
 	Label(self.wprior, text='Prior parameters').grid(row=8, column = 1)
 	Label(self.wprior, text='Value').grid(row=7, column = 2)
 	Label(self.wprior, text='jump ?').grid(row=7, column = 3)
@@ -80,7 +80,7 @@ def define_prior(self):
 	Label(self.wprior, text='Value3').grid(row=7, column = 7)
 	Label(self.wprior, text='Value4').grid(row=7, column = 8)
 	Label(self.wprior, text='File').grid(row=7, column = 9)
-	
+ 
 	Entry(self.wprior, textvariable=self.v7, width=10, bg='white', state='disabled').grid(row=8, column=2)
 	Checkbutton(self.wprior, variable=self.v8, state='disabled').grid(row=8, column=3)
 	OptionMenu(self.wprior, self.v9, *self.list_prior_type).grid(row=8, column=4)
@@ -116,7 +116,7 @@ def edit_prior(self):
 	self.v3.set(self.list_prior[self.select]['variables'][2])
 	self.v4.set(self.list_prior[self.select]['variables'][3])
 	self.v5.set(self.list_prior[self.select]['variables'][4])
-	
+ 
 	OptionMenu(self.wprior, self.v1, *self.list_variables).grid(row=1, column=2, columnspan=8, sticky=W+E)
 	OptionMenu(self.wprior, self.v2, *self.list_variables).grid(row=2, column=2, columnspan=8, sticky=W+E)
 	OptionMenu(self.wprior, self.v3, *self.list_variables).grid(row=3, column=2, columnspan=8, sticky=W+E)
@@ -130,7 +130,7 @@ def edit_prior(self):
 			self.v6.set(k)
 			label = k
 	Entry(self.wprior, textvariable = self.v6, width=40, bg='white').grid(row=6, column=2, columnspan=8, sticky=W+E)
-	
+ 
 	self.v7 = DoubleVar()
 	self.v8 = IntVar()
 	self.v8.set(0)
@@ -146,7 +146,7 @@ def edit_prior(self):
 	self.v12.set(self.list_prior[self.select][label][5])
 	self.v13.set(self.list_prior[self.select][label][6])
 	self.v14.set(self.list_prior[self.select][label][7])
-	
+ 
 	Label(self.wprior, text='Prior parameters').grid(row=8, column = 1)
 	Label(self.wprior, text='Value').grid(row=7, column = 2)
 	Label(self.wprior, text='jump ?').grid(row=7, column = 3)
@@ -156,7 +156,7 @@ def edit_prior(self):
 	Label(self.wprior, text='Value3').grid(row=7, column = 7)
 	Label(self.wprior, text='Value4').grid(row=7, column = 8)
 	Label(self.wprior, text='File').grid(row=7, column = 9)
-	
+ 
 	Entry(self.wprior, textvariable=self.v7, width=10, bg='white', state='disabled').grid(row=8, column=2)
 	Checkbutton(self.wprior, variable=self.v8, state='disabled').grid(row=8, column=3)
 	OptionMenu(self.wprior, self.v9, *self.list_prior_type).grid(row=8, column=4)
@@ -229,7 +229,7 @@ def save_info(self):
 	self.infodict['Max_PCA'] = round(self.v13.get())
 	if self.infodict['PCA'] and self.infodict['Min_PCA'] > self.infodict['Max_PCA'] :
 		tkMessageBox.showerror("Error", "PCA should be started before stopped !\nReturn to default value : infinity")
-		self.infodict['Max_PCA'] = n.inf
+		self.infodict['Max_PCA'] = np.inf
 	if self.infodict['PCA'] and self.infodict['Max_PCA'] < 1 :
 		tkMessageBox.showerror("Error", "PCA can not be stopped after zero iteration !\nPCA disabled")
 		self.infodict['PCA'] = 0
@@ -381,7 +381,7 @@ def refresh_list(self):
 	self.merge_object_list()
 
 def delete_list(self):
-	#self.select=str(self.listb.get(self.listb.curselection()[0]))
+ #self.select=str(self.listb.get(self.listb.curselection()[0]))
 	try : del self.list_prior[self.select]
 	except : del self.list_objects[self.select]
 	try : 
@@ -407,7 +407,7 @@ def check_delete(self):
 	Button(self.f_del, text='Yes, I am', command=self.delete_list).pack(side='left')
 	Button(self.f_del, text='No, I am not', command=self.check_del.destroy).pack()
 	self.f_del.pack()
-	
+ 
 def check_clear(self):
 	self.check_clr = Toplevel()
 	Label(self.check_clr, text='You are going to delete all objects.\nAre you sure ?', font=('Times', 14)).pack()
@@ -415,7 +415,7 @@ def check_clear(self):
 	Button(self.f_clr, text='Yes, I am', command=self.clear_list).pack(side='left')
 	Button(self.f_clr, text='No, I am not', command=self.check_clr.destroy).pack()
 	self.f_clr.pack()
-	
+ 
 
 def raz_nb(self):
 	self.nb_target=1
@@ -428,7 +428,7 @@ def raz_nb(self):
 
 def merge_object_list(self):
 	self.list_objects.update(self.list_objects_data)
-	
+ 
 
 def backward_compatibility(self):
 	if not self.infodict.has_key('walltime') : self.infodict['walltime'] = 720.
@@ -504,7 +504,7 @@ def refresh_state(self) :
 	if self.nb_target == 1 and self.nb_star == 1 and self.nb_planet == 1 and self.nb_fitobs == 1 :
 		self.but5b.config(state='disable') #active fitobs button
 	self.close_state()
-	
+ 
 def close_state(self):
 	if self.nb_fitobs > 1 :
 		self.but0.config(state='disable')
@@ -561,7 +561,7 @@ def save_PASTIS_window(self):
 def load_PASTIS_window(self):
 	import pickle
 	import tkFileDialog
-	
+ 
 	self.pastisfile = tkFileDialog.askopenfilename(defaultextension = ".pastis", initialdir = configpath, filetypes=[('PASTIS', '*.pastis')], title = "Load a PASTIS configuration file")
 	if self.pastisfile <> '' :
 		self.fileopenpastis = open(self.pastisfile, 'r')
@@ -596,12 +596,12 @@ def run_PASTIS(self) :
 	import time
 	import datetime
 	import pickle
-	import numpy as n
+	import numpy as np
 	import os
-	
+ 
 	# Read dictionaries
 	#objectdict = self.list_objects
-	
+ 
 	#custompriordict = self.list_prior
 	#dd = self.infodict
 
@@ -614,7 +614,7 @@ def run_PASTIS(self) :
 		except AttributeError : 
 			self.load_PASTIS_window()
 			self.pastis_filename = self.pastisfile
-	
+ 
 	if self.infodict['Nchain'] == 1 and self.infodict['Nbeta'] == 1 and hostname <> 'cluster' and self.infodict['qsub'] == 0 :
 		datadict, spectrographs, lightcurves = PASTIS.DataReader(self.datafile_list)
 		#if not self.islight : 
@@ -628,12 +628,12 @@ def run_PASTIS(self) :
 		sufix=datetime.datetime.isoformat(datetime.datetime.now())
 
 		C = PASTIS_MCMC.mcmc(self.list_objects, datadict, self.list_prior, self.infodict['Nmax'],
-			     Npca = self.infodict['Min_PCA'], NupdatePCA = self.infodict['N_update_PCA'], BIpca = self.infodict['BI_PCA'],
-			     beta = self.infodict['beta'], randomstart = self.infodict['randomstart'], Nlastupdate = self.infodict['Max_PCA'], usePCA = self.infodict['PCA'])
+		      Npca = self.infodict['Min_PCA'], NupdatePCA = self.infodict['N_update_PCA'], BIpca = self.infodict['BI_PCA'],
+		      beta = self.infodict['beta'], randomstart = self.infodict['randomstart'], Nlastupdate = self.infodict['Max_PCA'], usePCA = self.infodict['PCA'])
 		vd = C.get_value_dict()
 		vd['logL'] = C.get_logL()
 		vd['posterior'] = C.get_posterior()
-		
+  
 		sufix=datetime.datetime.isoformat(datetime.datetime.now())
 		filename=self.infodict['name']+'_'+(self.infodict['comment']).replace (" ", "_")+'_Beta%.6f_rep'%self.infodict['beta']+str(0).zfill(4)+'_queued'+sufix
 		# Define files to save the chain
@@ -655,21 +655,21 @@ def run_PASTIS(self) :
 				ra = self.infodict['alpha']
 				dec = self.infodict['delta']
 				extinction.initialize_extinction(ra, dec, self.infodict['MaxDist'],
-									self.infodict['EXTstep'], Rv = 3.1)
+				     self.infodict['EXTstep'], Rv = 3.1)
 				break
 
 
 		sufix=datetime.datetime.isoformat(datetime.datetime.now())
 		#self.w1.destroy()
-		
-		betas = n.zeros(self.infodict['Nbeta'], float)
-		chains = n.zeros(self.infodict['Nbeta'], float)
+  
+		betas = np.zeros(self.infodict['Nbeta'], float)
+		chains = np.zeros(self.infodict['Nbeta'], float)
 		if self.infodict['Nbeta'] == 1 :
 			betas += self.infodict['beta']
 			chains += self.infodict['Nchain']
 		else : 
-			betas = n.logspace(-2., 0., self.infodict['Nbeta'])
-			chains = n.linspace(1., self.infodict['Nchain'], self.infodict['Nbeta'])
+			betas = np.logspace(-2., 0., self.infodict['Nbeta'])
+			chains = np.linspace(1., self.infodict['Nchain'], self.infodict['Nbeta'])
 		for beta, nc in zip(betas, chains):
 			for c in xrange(round(nc)):
 
@@ -696,14 +696,14 @@ def run_PASTIS(self) :
 				f.write("vd = C.get_value_dict()\n")
 				f.write("vd['logL'] = C.get_logL()\n")
 				f.write("vd['posterior'] = C.get_posterior()\n")
-				
+    
 				f.write("# Save value dict to file\n")
 				f.write("p = open(os.path.join(%s, %s, %s+sufix+'.mcmc'), 'w')\n"%( "'"+resultpath+"'", "'"+self.infodict['name']+"'", "'"+filename+"_started'"))
 				f.write("pickle.dump(vd, p)\n")
 				f.write("p.close()\n")
 				f.write("# Pickle chain to file\n")
 				if self.infodict['save_chain'] : f.write("C.savetofile(os.path.join(%s, %s, %s+sufix+'.chain'))\n\n"%( "'"+resultpath+"'", "'"+self.infodict['name']+"'", "'"+filename+"_started'"))
-				
+    
 				if beta == 1. and c == round(nc)-1 and self.infodict['email'] <> '' :
 					f.write("sender = 'no-reply@oamp.fr'\n")
 					f.write("receivers = ['"+self.infodict['email']+"']\n")
@@ -727,7 +727,7 @@ def run_PASTIS(self) :
 					f.close()
 				else : 
 					f.close()
-				
+    
 				qsubname=(self.infodict['name']+' '+self.infodict['comment']).replace (" ", "_")
 				qsubsubmit='qsub '+os.path.join(runpath,'run_PASTIS_qsub.sh')+' -v file="'+self.infodict['name']+"/"+filename+'.py" -N '+qsubname+' -o '+os.path.join(runpath,self.infodict['name'],filename+'.output')+' -e '+os.path.join(runpath,self.infodict['name'],filename+'.error'+' -l walltime='+str(int(self.infodict['walltime']))+':00:00')
 				#print qsubsubmit 

@@ -3,7 +3,7 @@ New PASTIS_RV dev
 """
 
 from math import *
-import numpy as n
+import numpy as np
 from scipy import optimize
 
 # Intra-package imports
@@ -31,48 +31,48 @@ def CCF_interpolate(RV, CCF, params):
 
     k, v0, fwhm, c = params
 
-    sigma = fwhm/2./n.sqrt(2.*n.log(2.))
+    sigma = fwhm/2./np.sqrt(2.*np.log(2.))
     norm_CCF = -c/k*(1.-CCF/c)
     nstep = 100
     margin = 5
-    depth = n.arange(nstep-2*margin+1,dtype=float)/nstep + float(margin)/nstep
+    depth = np.arange(nstep-2*margin+1,dtype=float)/nstep + float(margin)/nstep
 
     # mean RV for each segment of the CCF
     MeanRV = [(RV[i]+RV[i+1])/2. for i in range(len(CCF)-1)]
 
     # derivatives for each segment of the CCF
-    ExpV= [n.exp(-(v-v0)**2/2/sigma**2)/sigma**2 for v in MeanRV]
+    ExpV= [np.exp(-(v-v0)**2/2/sigma**2)/sigma**2 for v in MeanRV]
     dCCFdRV = [-(v-v0)*expV for v,expV in zip(MeanRV,ExpV)]
     d2CCFdRV2 = [((v-v0)**2/sigma**2-1)*expV for v,expV in zip(MeanRV,ExpV)]
-    d2RVdCCF2 = n.array([-d1/d2**3 for d1,d2 in zip(d2CCFdRV2,dCCFdRV)])
-	
+    d2RVdCCF2 = np.array([-d1/d2**3 for d1,d2 in zip(d2CCFdRV2,dCCFdRV)])
+ 
     # not-null range (a ver como simplificar)
     iRange = [ii for ii in range(len(CCF)-1) if (max(norm_CCF[ii],norm_CCF[ii+1]) >= depth[0]) & (min(norm_CCF[ii],norm_CCF[ii+1]) <= depth[-1])]
 
     # parameters ?? for each segment of the CCF
-    p = n.zeros([len(CCF),3],'d')
-    p[iRange,2] = n.array(d2RVdCCF2[iRange])/2.
-    p[iRange,1] = n.array([(RV[i+1]-RV[i]-p[i,2]*(norm_CCF[i+1]**2-norm_CCF[i]**2))/(norm_CCF[i+1]-norm_CCF[i]) for i in iRange])
-    p[iRange,0] = n.array([RV[i]-p[i,1]*norm_CCF[i]-p[i,2]*norm_CCF[i]**2 for i in iRange])
+    p = np.zeros([len(CCF),3],'d')
+    p[iRange,2] = np.array(d2RVdCCF2[iRange])/2.
+    p[iRange,1] = np.array([(RV[i+1]-RV[i]-p[i,2]*(norm_CCF[i+1]**2-norm_CCF[i]**2))/(norm_CCF[i+1]-norm_CCF[i]) for i in iRange])
+    p[iRange,0] = np.array([RV[i]-p[i,1]*norm_CCF[i]-p[i,2]*norm_CCF[i]**2 for i in iRange])
 
     # Indexes where "norm_CCF > dd"
-    Indexes = n.array([[n.where(norm_CCF > dd)[0][0]-1,n.where(norm_CCF > dd)[0][-1]] for dd in depth])
+    Indexes = np.array([[np.where(norm_CCF > dd)[0][0]-1,np.where(norm_CCF > dd)[0][-1]] for dd in depth])
     IndexBlue, IndexRed = [ind[0] for ind in Indexes],[ind[-1] for ind in Indexes]
 
     # Bisector definition
-    bis_b = n.array([p[i_b,0]+p[i_b,1]*dd+p[i_b,2]*dd**2 for i_b,dd in zip(IndexBlue,depth)])
-    bis_r = n.array([p[i_r,0]+p[i_r,1]*dd+p[i_r,2]*dd**2 for i_r,dd in zip(IndexRed,depth)])
-	
+    bis_b = np.array([p[i_b,0]+p[i_b,1]*dd+p[i_b,2]*dd**2 for i_b,dd in zip(IndexBlue,depth)])
+    bis_r = np.array([p[i_r,0]+p[i_r,1]*dd+p[i_r,2]*dd**2 for i_r,dd in zip(IndexRed,depth)])
+ 
     return depth, bis_b, bis_r, v0
 
 def weight_bouchy(lambdas, flux):
-	#calculates the weight as a function of the pixel using the formula 8 of Bouchy, Pepe & Queloz (2001)
+ #calculates the weight as a function of the pixel using the formula 8 of Bouchy, Pepe & Queloz (2001)
 	dA_over_dlambda = (flux[1:] - flux[:-1]) / (lambdas[1:] - lambdas[:-1])
 	#add one value in the end
-	dA_over_dlambda = n.append(dA_over_dlambda, 0.0)
-	
+	dA_over_dlambda = np.append(dA_over_dlambda, 0.0)
+ 
 	weight = lambdas*lambdas*dA_over_dlambda*dA_over_dlambda/flux
-	
+ 
 	return weight
 
 def Vasy(RV, CCF, Gauss_params):
@@ -86,9 +86,9 @@ def Vasy(RV, CCF, Gauss_params):
 	weight_b = weight_bouchy(lambda_b, depth)
 
 	average_weight = (weight_r + weight_b) / 2.0
-	
-	Vasy_res = n.sum((weight_r - weight_b) * average_weight) / n.sum(average_weight)
-	
+ 
+	Vasy_res = np.sum((weight_r - weight_b) * average_weight) / np.sum(average_weight)
+ 
 	return Vasy_res
 
 
@@ -96,15 +96,15 @@ def asym_gaussian(p,x):
 	"""
 	p : [c, rv0, sig, Asym]
 	"""
-	Gb = 1. - p[0]/100.*n.exp(-(x[n.where(x < p[1])[0]]-p[1])**2/(2.*(p[2]*(1.-p[3]))**2))
-	Gr = 1. - p[0]/100.*n.exp(-(x[n.where(x >= p[1])[0]]-p[1])**2/(2.*(p[2]*(1.+p[3]))**2))
-	return n.concatenate((Gb,Gr))
+	Gb = 1. - p[0]/100.*np.exp(-(x[np.where(x < p[1])[0]]-p[1])**2/(2.*(p[2]*(1.-p[3]))**2))
+	Gr = 1. - p[0]/100.*np.exp(-(x[np.where(x >= p[1])[0]]-p[1])**2/(2.*(p[2]*(1.+p[3]))**2))
+	return np.concatenate((Gb,Gr))
 
 def gaussian(p ,x): 
 	"""
 	p : [c, rv0, sig]
 	"""
-	return 1. - p[0]/100.*n.exp(-(x-p[1])**2/(2.*p[2]**2))
+	return 1. - p[0]/100.*np.exp(-(x-p[1])**2/(2.*p[2]**2))
 
 def res(p, x, y): 
 	return y-gaussian(p, x)
@@ -113,13 +113,13 @@ def asym_res(p, x, y):
 	return y-asym_gaussian(p, x)
 
 def gaussian_res(p ,x, y): 
-	rez = n.empty(x.size)
+	rez = np.empty(x.size)
 	lib.gaussian_res(p.ctypes.data_as(POINTER(c_double)), x.ctypes.data_as(POINTER(c_double)), 
 	y.ctypes.data_as(POINTER(c_double)), len(x), rez.ctypes.data_as(POINTER(c_double)));
 	return rez;
 
 def gaussian_res_J(p ,x, y):
-	rez = n.empty((4, x.size))
+	rez = np.empty((4, x.size))
 	lib.gaussian_res_J(p.ctypes.data_as(POINTER(c_double)), x.ctypes.data_as(POINTER(c_double)), 
 	y.ctypes.data_as(POINTER(c_double)), len(x), rez.ctypes.data_as(POINTER(c_double)));
 	return rez
@@ -153,9 +153,9 @@ def fitgauss(x,y,p, mode='normal'):
 	mode : 'normal', 'asym'
 	"""
 	if mode == 'normal' : 
-		p = n.hstack([[1.], p])
+		p = np.hstack([[1.], p])
 		p[1] = -p[1] / 100
-		p[3] = p[3] * n.sqrt(2.0)
+		p[3] = p[3] * np.sqrt(2.0)
 		xtol = 1e-5;  # precision required of 10cm/s	
 		p1,wf = optimize.leastsq(gaussian_res, p, Dfun = gaussian_res_J, args=(x,y), col_deriv = True, full_output = False, xtol=xtol);
 		if not wf in (1,2,3,4):
@@ -164,7 +164,7 @@ def fitgauss(x,y,p, mode='normal'):
 		else:
 			p1[1] = -p1[1] * 100
 			# p1[3] could be negative! we should make abs
-			p1[3] = abs(p1[3]) / n.sqrt(2.0)
+			p1[3] = abs(p1[3]) / np.sqrt(2.0)
 			return p1[1:], 1
 	elif mode == 'asym' : 
 		p1, wf = optimize.leastsq(asym_res, p, args=(x,y),full_output=False,xtol=1e-5) # precision required of 10cm/s
@@ -189,30 +189,30 @@ def vspan(x, y, p, mode = 'TB'):
 
 	stepccf = x[1] - x[0]
 	if ll1>x[0] and ll4<x[-1]:
-		
+  
 		ind1=int((ll1-x[0])/stepccf)
 		ind2=int((ll2-x[0])/stepccf)
 		ind3=int((ll3-x[0])/stepccf)
 		ind4=int((ll4-x[0])/stepccf)
 		ind5=int((ll5-x[0])/stepccf)
-		
+  
 		if mode == 'TB' :
-			x1=n.concatenate((x[:ind2],x[ind3+1:]))
-			y1=n.concatenate((y[:ind2],y[ind3+1:]))
-			x2=n.concatenate((x[:ind1],x[ind2:ind3+1],x[ind4+1:]))
-			y2=n.concatenate((y[:ind1],y[ind2:ind3+1],y[ind4+1:]))
+			x1=np.concatenate((x[:ind2],x[ind3+1:]))
+			y1=np.concatenate((y[:ind2],y[ind3+1:]))
+			x2=np.concatenate((x[:ind1],x[ind2:ind3+1],x[ind4+1:]))
+			y2=np.concatenate((y[:ind1],y[ind2:ind3+1],y[ind4+1:]))
 		elif mode == 'RB' :
-			x1=n.concatenate((x[:ind5],x[ind4:]))
-			y1=n.concatenate((y[:ind5],y[ind4:]))
-			x2=n.concatenate((x[:ind1],x[ind5:]))
-			y2=n.concatenate((y[:ind1],y[ind5:]))
-		
+			x1=np.concatenate((x[:ind5],x[ind4:]))
+			y1=np.concatenate((y[:ind5],y[ind4:]))
+			x2=np.concatenate((x[:ind1],x[ind5:]))
+			y2=np.concatenate((y[:ind1],y[ind5:]))
+  
 		try : 
 			p6, conv_6=fitgauss(x2,y2, p)
 			p5, conv_5=fitgauss(x1,y1, p)
 			CCF_RV_high=p5[1]
 			CCF_RV_low=p6[1]
-		
+  
 			if conv_5 and conv_6 : vspan=CCF_RV_high-CCF_RV_low
 			else : vspan=999.
 		except : vspan = 999.
@@ -224,19 +224,19 @@ def fit_BiGauss(x,y,p):
 	"""
 	p : [c, rv0, sig]
 	"""
-	return p[1] - fitgauss(x,y,n.hstack([p,[0.0]]), mode='asym')[0][1]
-	
+	return p[1] - fitgauss(x,y,np.hstack([p,[0.0]]), mode='asym')[0][1]
+ 
 def fit_BIS(x, y, p):
 	"""
 	Return the Bisector Inverse Slope (BIS) as defined in Queloz et al. (2001)
 	"""
-	seuil=n.linspace(0., 1., 101)
+	seuil=np.linspace(0., 1., 101)
 	y -= min(y)
 	y/=max(y)
-	left = n.where(n.logical_and(x <= p[1], x > p[1] - 5.*p[2]))[0]
-	right = n.where(n.logical_and(x >= p[1], x < p[1] + 5.*p[2]))[0]
-	Vleft = n.interp(seuil, 1.-y[left], x[left])
-	Vright = n.interp(seuil, y[right], x[right])
+	left = np.where(np.logical_and(x <= p[1], x > p[1] - 5.*p[2]))[0]
+	right = np.where(np.logical_and(x >= p[1], x < p[1] + 5.*p[2]))[0]
+	Vleft = np.interp(seuil, 1.-y[left], x[left])
+	Vright = np.interp(seuil, y[right], x[right])
 	Vtop = 0.
 	for j in xrange(10,40):
 		Vtop += (Vright[-(j+1)] + Vleft[j])/2.
@@ -258,23 +258,23 @@ def get_FWHM(vsini, BmV, spectrograph, output = 'FWHM'):
 	if spectrograph == 'CORALIE' : 
 		sigma0=6.603 - 6.357*BmV + 5.533*BmV**2 - 1.454*BmV**3
 		A=1.9
-		FWHM=n.sqrt((vsini**2.+A**2.*sigma0**2.)/A**2.)*(2.*n.sqrt(2.*n.log(2.)))
+		FWHM=np.sqrt((vsini**2.+A**2.*sigma0**2.)/A**2.)*(2.*np.sqrt(2.*np.log(2.)))
 	if spectrograph == 'HARPS' : 
 		sigma0=8.625-20.037*BmV+23.388*BmV**2-10.364*BmV**3+1.273*BmV**4
 		A=1.95
-		FWHM=n.sqrt((vsini**2.+A**2.*sigma0**2.)/A**2.)*(2.*n.sqrt(2.*n.log(2.)))
+		FWHM=np.sqrt((vsini**2.+A**2.*sigma0**2.)/A**2.)*(2.*np.sqrt(2.*np.log(2.)))
 	if spectrograph == 'SOPHIE HE' : 
 		sigma0=10.52-22.56*BmV+22.37*BmV**2.-6.95*BmV**3.
 		A=1.64
-		FWHM=n.sqrt((vsini**2.+A**2.*sigma0**2.)/A**2.)*(2.*n.sqrt(2.*n.log(2.)))
+		FWHM=np.sqrt((vsini**2.+A**2.*sigma0**2.)/A**2.)*(2.*np.sqrt(2.*np.log(2.)))
 	if spectrograph == 'SOPHIE HR' : 
 		sigma0=9.90 - 22.56*BmV + 22.37*BmV**2. - 6.95*BmV**3.
 		A=1.95
-		FWHM=n.sqrt((vsini**2.+A**2.*sigma0**2.)/A**2.)*(2.*n.sqrt(2.*n.log(2.)))
-	
+		FWHM=np.sqrt((vsini**2.+A**2.*sigma0**2.)/A**2.)*(2.*np.sqrt(2.*np.log(2.)))
+ 
 	if output == 'FWHM' : return FWHM
 	elif output == 'sigma0' : return sigma0
-	elif output == 'sigma' : return FWHM/(2.*n.sqrt(2.*n.log(2.)))
+	elif output == 'sigma' : return FWHM/(2.*np.sqrt(2.*np.log(2.)))
 	else : return
 
 def get_contrast(FWHM, BmV, z, spectrograph, mask, output = 'ctrs'):
@@ -302,7 +302,7 @@ def get_contrast(FWHM, BmV, z, spectrograph, mask, output = 'ctrs'):
 		if mask == 'K0':
 			logW = (z - 2.573 + 8.142*BmV - 5.583*BmV**2) / 4.587 #Santos et al. 2002
 
-	if output == 'ctrs' : return 10**logW / n.sqrt(2.*n.pi) / (FWHM / (2.*n.log(2.))) * 100. # in % 
+	if output == 'ctrs' : return 10**logW / np.sqrt(2.*np.pi) / (FWHM / (2.*np.log(2.))) * 100. # in % 
 	elif output == 'W' : return 10**logW
 	else : return
 
@@ -327,13 +327,13 @@ def profile_rot(x, x0, vsini, epsilon, ctrs, FWHM_instru = 9.9):
 	"""
 	Not working, do not use !
 	"""
-	sig = 2.*n.sqrt(2.*n.log(2.))
-	y1=1./n.sqrt(2.*n.pi*(FWHM_instru/sig)**2)*n.exp(-(x-x0)**2/(2.*(FWHM_instru/sig)**2))
+	sig = 2.*np.sqrt(2.*np.log(2.))
+	y1=1./np.sqrt(2.*np.pi*(FWHM_instru/sig)**2)*np.exp(-(x-x0)**2/(2.*(FWHM_instru/sig)**2))
 	#y1=n.exp(-(x-x0)**2/(2.*(FWHM_instru/sig)**2))*ctrs
 	y2=rot_profile(x,vsini,epsilon)
 	#y2/=max(y2)
-	Conv2=n.convolve(y1[1:],y2[:-1],mode=1)
-	Conv2 = n.array(list(Conv2) + [0.0])
+	Conv2=np.convolve(y1[1:],y2[:-1],mode=1)
+	Conv2 = np.array(list(Conv2) + [0.0])
 	Conv2 /= max(Conv2)
 	CCF = (1. - Conv2*ctrs)
 	#CCF -= min(CCF) - (1. - ctrs)
@@ -344,18 +344,18 @@ def profile_rot(x, x0, vsini, epsilon, ctrs, FWHM_instru = 9.9):
 def rot_profile(v, vsini, epsilon):
 
 	c1= 2. *(1.- epsilon)
-	c2= 0.5 * n.pi * epsilon
+	c2= 0.5 * np.pi * epsilon
 
-	G=n.zeros(len(v), float)
+	G=np.zeros(len(v), float)
 	for i in xrange(len(v)):
 		if abs(v[i]) <= vsini:
 			Dv=(v[i] / vsini)**2.
 			a=1.- Dv
-			b=n.sqrt(a)
+			b=np.sqrt(a)
 			G[i] = (c1 * b) + (c2 * a)
-			G[i]/=(n.pi * vsini * (1.-epsilon/3.))
+			G[i]/=(np.pi * vsini * (1.-epsilon/3.))
 		else:G[i]=0
-	
+ 
 	return G
 
 
@@ -363,13 +363,13 @@ def make_CCF(rv, rv0, FWHM, contrast, flux):
 	"""
 	Make a synthetic gaussian CCF for a given radial velocity, FWHM, contrast and flux.
 	"""
-	sigma = FWHM / (2.*n.sqrt(2.*n.log(2)))
+	sigma = FWHM / (2.*np.sqrt(2.*np.log(2)))
 	return gaussian([contrast, rv0, sigma], rv)*flux
 
 
 
 def CCF_prop(t_rv, spectro, mask, *args):
-	# count number of stars
+ # count number of stars
 	nb_star = 0
 	for obj in args :
 		if isinstance(obj, Star): nb_star+=1
@@ -383,10 +383,10 @@ def CCF_prop(t_rv, spectro, mask, *args):
 				elif isinstance(comp, PlanSys):
 					nb_star+=1
 		if isinstance(obj, PlanSys): nb_star+=1
-	FWHM = n.zeros(nb_star, float)
-	contrast = n.zeros(nb_star, float)
-	rv0 = n.zeros([nb_star, len(t_rv)], float)
-	flux = n.zeros(nb_star, float)
+	FWHM = np.zeros(nb_star, float)
+	contrast = np.zeros(nb_star, float)
+	rv0 = np.zeros([nb_star, len(t_rv)], float)
+	flux = np.zeros(nb_star, float)
 	# define CCF proprieties of each stars
 	count = 0
 	for obj in args :
@@ -395,7 +395,7 @@ def CCF_prop(t_rv, spectro, mask, *args):
 			FWHM[count] = get_FWHM(obj.vsini, obj.BmV, spectro)
 			contrast[count] = get_contrast(FWHM[count], obj.BmV, obj.z, spectro, mask)
 			flux[count] = obj.get_flux('Johnson-V')
-			rv0[count] = obj.v0*n.ones(len(t_rv), float)
+			rv0[count] = obj.v0*np.ones(len(t_rv), float)
 			count+=1
 		if isinstance(obj, IsoBinary):
 			obj.star1.BmV = obj.star1.get_BmV()
@@ -447,7 +447,7 @@ def CCF_prop(t_rv, spectro, mask, *args):
 			flux[count] = obj.star.get_flux('Johnson-V')
 			rv0[count] = obj.get_RV(t_rv)
 			count+=1
-	
+ 
 	return nb_star, FWHM, contrast, flux, rv0
 
 
@@ -455,29 +455,29 @@ def PASTIS_RV(t_rv, RVdatadict, *args):
     """
     return models for RV, bisector, FWHM and contrast
     """
-    import numpy as n
+    import numpy as np
     spectro = RVdatadict['spectro']
     mask = RVdatadict['mask']
 
     output_dict = {}
 
-    if RVdatadict.has_key('RV') \
-            or RVdatadict.has_key('CTRS') \
-            or RVdatadict.has_key('FWHM') \
-            or RVdatadict.has_key('BIS') \
-            or RVdatadict.has_key('Vspan') \
-            or RVdatadict.has_key('Wspan') \
-            or RVdatadict.has_key('BiGauss') \
+    if RVdatadict.has_key('RV')\
+            or RVdatadict.has_key('CTRS')\
+            or RVdatadict.has_key('FWHM')\
+            or RVdatadict.has_key('BIS')\
+            or RVdatadict.has_key('Vspan')\
+            or RVdatadict.has_key('Wspan')\
+            or RVdatadict.has_key('BiGauss')\
             or RVdatadict.has_key('Vasy') :
-        rv_simu = n.zeros(len(t_rv), float)
-        fwhm_simu = n.zeros(len(t_rv), float)
-        contrast_simu = n.zeros(len(t_rv), float)
+        rv_simu = np.zeros(len(t_rv), float)
+        fwhm_simu = np.zeros(len(t_rv), float)
+        contrast_simu = np.zeros(len(t_rv), float)
 
-    if RVdatadict.has_key('BIS'): bis_simu = n.zeros(len(t_rv), float)
-    if RVdatadict.has_key('Vspan'): vspan_simu = n.zeros(len(t_rv), float)
-    if RVdatadict.has_key('Wspan'): wspan_simu = n.zeros(len(t_rv), float)
-    if RVdatadict.has_key('BiGauss'): bigauss_simu = n.zeros(len(t_rv), float)
-    if RVdatadict.has_key('Vasy'): vasy_simu = n.zeros(len(t_rv), float)
+    if RVdatadict.has_key('BIS'): bis_simu = np.zeros(len(t_rv), float)
+    if RVdatadict.has_key('Vspan'): vspan_simu = np.zeros(len(t_rv), float)
+    if RVdatadict.has_key('Wspan'): wspan_simu = np.zeros(len(t_rv), float)
+    if RVdatadict.has_key('BiGauss'): bigauss_simu = np.zeros(len(t_rv), float)
+    if RVdatadict.has_key('Vasy'): vasy_simu = np.zeros(len(t_rv), float)
 
     condFitBin = map(isinstance, args, [FitBinary]*len(args))
     condIsoBin = map(isinstance, args, [IsoBinary]*len(args))
@@ -489,31 +489,31 @@ def PASTIS_RV(t_rv, RVdatadict, *args):
         FWHM = get_FWHM(args[0].star.vsini, args[0].star.BmV, spectro)
         contrast = get_contrast(FWHM, args[0].star.BmV, args[0].star.z, spectro, mask)
         sigma0 = get_FWHM(args[0].star.vsini, args[0].star.BmV, spectro, output='sigma0')
-        CCF_width = FWHM/(2.*n.sqrt(2.*n.log(2.)))
+        CCF_width = FWHM/(2.*np.sqrt(2.*np.log(2.)))
         if RVdatadict.has_key('RV')  :
             output_dict['RV'] = args[0].get_RV(t_rv) - RVdatadict['RV']['offset']
             for p in args[0].planets:
                 if p.orbital_parameters.spinorbit <> None :
-                    if isinstance(p, Planet) :output_dict['RV'] += Pyarome.arome(p.get_true_lat(t_rv), p.ar*(1.-p.orbital_parameters.ecc**2)/(1.+p.orbital_parameters.ecc*n.sin(p.orbital_parameters.omega)), p.orbital_parameters.incl, p.orbital_parameters.spinorbit, [args[0].star.ua, args[0].star.ub], beta0=sigma0, Vsini=args[0].star.vsini, sigma0=CCF_width, zeta=args[0].star.zeta, Rp=p.Rp/p.star.R, units='degree')
-                    elif isinstance(p, FitPlanet) :output_dict['RV'] += Pyarome.arome(p.get_true_lat(t_rv), p.ar*(1.-p.orbital_parameters.ecc**2)/(1.+p.orbital_parameters.ecc*n.sin(p.orbital_parameters.omega)), p.orbital_parameters.incl, p.orbital_parameters.spinorbit, [args[0].star.ua, args[0].star.ub], beta0=sigma0, Vsini=args[0].star.vsini, sigma0=CCF_width, zeta=args[0].star.zeta, Rp=p.kr, units='radian')
-        if RVdatadict.has_key('CTRS') : output_dict['CTRS'] = n.ones(len(t_rv), float) * contrast - RVdatadict['CTRS']['offset']
-        if RVdatadict.has_key('FWHM') : output_dict['FWHM'] = n.ones(len(t_rv), float) * FWHM - RVdatadict['FWHM']['offset']
-        if RVdatadict.has_key('BIS') : output_dict['BIS'] = n.zeros(len(t_rv), float) - RVdatadict['BIS']['offset']
-        if RVdatadict.has_key('Vspan') : output_dict['Vspan'] = n.zeros(len(t_rv), float) - RVdatadict['Vspan']['offset']
-        if RVdatadict.has_key('Wspan') : output_dict['Wspan'] = n.zeros(len(t_rv), float) - RVdatadict['Wspan']['offset']
-        if RVdatadict.has_key('BiGauss') : output_dict['BiGauss'] = n.zeros(len(t_rv), float) - RVdatadict['BiGauss']['offset']
-        if RVdatadict.has_key('Vasy') : output_dict['Vasy'] = n.zeros(len(t_rv), float) - RVdatadict['Vasy']['offset']
+                    if isinstance(p, Planet) :output_dict['RV'] += Pyarome.arome(p.get_true_lat(t_rv), p.ar*(1.-p.orbital_parameters.ecc**2)/(1.+p.orbital_parameters.ecc*np.sin(p.orbital_parameters.omega)), p.orbital_parameters.incl, p.orbital_parameters.spinorbit, [args[0].star.ua, args[0].star.ub], beta0=sigma0, Vsini=args[0].star.vsini, sigma0=CCF_width, zeta=args[0].star.zeta, Rp=p.Rp/p.star.R, units='degree')
+                    elif isinstance(p, FitPlanet) :output_dict['RV'] += Pyarome.arome(p.get_true_lat(t_rv), p.ar*(1.-p.orbital_parameters.ecc**2)/(1.+p.orbital_parameters.ecc*np.sin(p.orbital_parameters.omega)), p.orbital_parameters.incl, p.orbital_parameters.spinorbit, [args[0].star.ua, args[0].star.ub], beta0=sigma0, Vsini=args[0].star.vsini, sigma0=CCF_width, zeta=args[0].star.zeta, Rp=p.kr, units='radian')
+        if RVdatadict.has_key('CTRS') : output_dict['CTRS'] = np.ones(len(t_rv), float) * contrast - RVdatadict['CTRS']['offset']
+        if RVdatadict.has_key('FWHM') : output_dict['FWHM'] = np.ones(len(t_rv), float) * FWHM - RVdatadict['FWHM']['offset']
+        if RVdatadict.has_key('BIS') : output_dict['BIS'] = np.zeros(len(t_rv), float) - RVdatadict['BIS']['offset']
+        if RVdatadict.has_key('Vspan') : output_dict['Vspan'] = np.zeros(len(t_rv), float) - RVdatadict['Vspan']['offset']
+        if RVdatadict.has_key('Wspan') : output_dict['Wspan'] = np.zeros(len(t_rv), float) - RVdatadict['Wspan']['offset']
+        if RVdatadict.has_key('BiGauss') : output_dict['BiGauss'] = np.zeros(len(t_rv), float) - RVdatadict['BiGauss']['offset']
+        if RVdatadict.has_key('Vasy') : output_dict['Vasy'] = np.zeros(len(t_rv), float) - RVdatadict['Vasy']['offset']
 
         if RVdatadict.has_key('RV')  : output_dict['RV'] = args[0].get_RV(t_rv) - RVdatadict['RV']['offset']
-        if RVdatadict.has_key('CTRS') : output_dict['CTRS'] = n.ones(len(t_rv), float) * contrast - RVdatadict['CTRS']['offset']
-        if RVdatadict.has_key('FWHM') : output_dict['FWHM'] = n.ones(len(t_rv), float) * FWHM - RVdatadict['FWHM']['offset']
-        if RVdatadict.has_key('BIS') : output_dict['BIS'] = n.zeros(len(t_rv), float) - RVdatadict['BIS']['offset']
-        if RVdatadict.has_key('Vspan') : output_dict['Vspan'] = n.zeros(len(t_rv), float) - RVdatadict['Vspan']['offset']
-        if RVdatadict.has_key('Wspan') : output_dict['Wspan'] = n.zeros(len(t_rv), float) - RVdatadict['Wspan']['offset']
-        if RVdatadict.has_key('BiGauss') : output_dict['BiGauss'] = n.zeros(len(t_rv), float) - RVdatadict['BiGauss']['offset']
-        if RVdatadict.has_key('Vasy') : output_dict['Vasy'] = n.zeros(len(t_rv), float) - RVdatadict['Vasy']['offset']
+        if RVdatadict.has_key('CTRS') : output_dict['CTRS'] = np.ones(len(t_rv), float) * contrast - RVdatadict['CTRS']['offset']
+        if RVdatadict.has_key('FWHM') : output_dict['FWHM'] = np.ones(len(t_rv), float) * FWHM - RVdatadict['FWHM']['offset']
+        if RVdatadict.has_key('BIS') : output_dict['BIS'] = np.zeros(len(t_rv), float) - RVdatadict['BIS']['offset']
+        if RVdatadict.has_key('Vspan') : output_dict['Vspan'] = np.zeros(len(t_rv), float) - RVdatadict['Vspan']['offset']
+        if RVdatadict.has_key('Wspan') : output_dict['Wspan'] = np.zeros(len(t_rv), float) - RVdatadict['Wspan']['offset']
+        if RVdatadict.has_key('BiGauss') : output_dict['BiGauss'] = np.zeros(len(t_rv), float) - RVdatadict['BiGauss']['offset']
+        if RVdatadict.has_key('Vasy') : output_dict['Vasy'] = np.zeros(len(t_rv), float) - RVdatadict['Vasy']['offset']
 
-    elif all(condFitBin or cond_drift) and \
+    elif all(condFitBin or cond_drift) and\
             not any(condIsoBin) and not any(condFitPlanet):
         # If all objects are FitBinary and none is an IsoBinary, and none is a FitPlanet
         # just return sum of RVs (in this way qBinaries will go through
@@ -523,41 +523,41 @@ def PASTIS_RV(t_rv, RVdatadict, *args):
             rv_simu += obj.get_RV(t_rv)
 
         if RVdatadict.has_key('RV')  : output_dict['RV'] = rv_simu - RVdatadict['RV']['offset']
-        if RVdatadict.has_key('CTRS') : output_dict['CTRS'] = n.zeros(len(t_rv), float) - RVdatadict['CTRS']['offset']
-        if RVdatadict.has_key('FWHM') : output_dict['FWHM'] = n.zeros(len(t_rv), float) - RVdatadict['FWHM']['offset']
-        if RVdatadict.has_key('BIS') : output_dict['BIS'] = n.zeros(len(t_rv), float) - RVdatadict['BIS']['offset']
-        if RVdatadict.has_key('Vspan') : output_dict['Vspan'] = n.zeros(len(t_rv), float) - RVdatadict['Vspan']['offset']
-        if RVdatadict.has_key('Wspan') : output_dict['Wspan'] = n.zeros(len(t_rv), float) - RVdatadict['Wspan']['offset']
-        if RVdatadict.has_key('BiGauss') : output_dict['BiGauss'] = n.zeros(len(t_rv), float) - RVdatadict['BiGauss']['offset']
-        if RVdatadict.has_key('Vasy') : output_dict['Vasy'] = n.zeros(len(t_rv), float) - RVdatadict['Vasy']['offset']
+        if RVdatadict.has_key('CTRS') : output_dict['CTRS'] = np.zeros(len(t_rv), float) - RVdatadict['CTRS']['offset']
+        if RVdatadict.has_key('FWHM') : output_dict['FWHM'] = np.zeros(len(t_rv), float) - RVdatadict['FWHM']['offset']
+        if RVdatadict.has_key('BIS') : output_dict['BIS'] = np.zeros(len(t_rv), float) - RVdatadict['BIS']['offset']
+        if RVdatadict.has_key('Vspan') : output_dict['Vspan'] = np.zeros(len(t_rv), float) - RVdatadict['Vspan']['offset']
+        if RVdatadict.has_key('Wspan') : output_dict['Wspan'] = np.zeros(len(t_rv), float) - RVdatadict['Wspan']['offset']
+        if RVdatadict.has_key('BiGauss') : output_dict['BiGauss'] = np.zeros(len(t_rv), float) - RVdatadict['BiGauss']['offset']
+        if RVdatadict.has_key('Vasy') : output_dict['Vasy'] = np.zeros(len(t_rv), float) - RVdatadict['Vasy']['offset']
 
-    elif all(n.array(condFitPlanet) | n.array(cond_drift)):
+    elif all(np.array(condFitPlanet) | np.array(cond_drift)):
         for obj in args:
             rv_simu += obj.get_RV(t_rv)
             if isinstance(obj, FitPlanet) and obj.orbital_parameters.spinorbit is not None:
                 sigma0 = get_FWHM(obj.vsini1, obj.BmV, spectro, output='sigma0')
                 CCF_width = get_FWHM(obj.vsini1, obj.BmV, spectro, output='sigma')
-                rv_simu += Pyarome.arome(obj.get_true_lat(t_rv), obj.ar*(1.-obj.orbital_parameters.ecc**2)/(1.+obj.orbital_parameters.ecc*n.sin(obj.orbital_parameters.omega)), obj.orbital_parameters.incl, obj.orbital_parameters.spinorbit, [obj.ua1, obj.ub1], beta0=sigma0, Vsini=obj.vsini1, sigma0=CCF_width, zeta=obj.zeta1, Rp=obj.kr, units='radians')
+                rv_simu += Pyarome.arome(obj.get_true_lat(t_rv), obj.ar*(1.-obj.orbital_parameters.ecc**2)/(1.+obj.orbital_parameters.ecc*np.sin(obj.orbital_parameters.omega)), obj.orbital_parameters.incl, obj.orbital_parameters.spinorbit, [obj.ua1, obj.ub1], beta0=sigma0, Vsini=obj.vsini1, sigma0=CCF_width, zeta=obj.zeta1, Rp=obj.kr, units='radians')
         if RVdatadict.has_key('RV')  : output_dict['RV'] = rv_simu - RVdatadict['RV']['offset']
-        if RVdatadict.has_key('CTRS') : output_dict['CTRS'] = n.ones(len(t_rv), float) * contrast - RVdatadict['CTRS']['offset']
-        if RVdatadict.has_key('FWHM') : output_dict['FWHM'] = n.ones(len(t_rv), float) * FWHM - RVdatadict['FWHM']['offset']
-        if RVdatadict.has_key('BIS') : output_dict['BIS'] = n.zeros(len(t_rv), float) - RVdatadict['BIS']['offset']
-        if RVdatadict.has_key('Vspan') : output_dict['Vspan'] = n.zeros(len(t_rv), float) - RVdatadict['Vspan']['offset']
-        if RVdatadict.has_key('Wspan') : output_dict['Wspan'] = n.zeros(len(t_rv), float) - RVdatadict['Wspan']['offset']
-        if RVdatadict.has_key('BiGauss') : output_dict['BiGauss'] = n.zeros(len(t_rv), float) - RVdatadict['BiGauss']['offset']
-        if RVdatadict.has_key('Vasy') : output_dict['Vasy'] = n.zeros(len(t_rv), float) - RVdatadict['Vasy']['offset']
+        if RVdatadict.has_key('CTRS') : output_dict['CTRS'] = np.ones(len(t_rv), float) * contrast - RVdatadict['CTRS']['offset']
+        if RVdatadict.has_key('FWHM') : output_dict['FWHM'] = np.ones(len(t_rv), float) * FWHM - RVdatadict['FWHM']['offset']
+        if RVdatadict.has_key('BIS') : output_dict['BIS'] = np.zeros(len(t_rv), float) - RVdatadict['BIS']['offset']
+        if RVdatadict.has_key('Vspan') : output_dict['Vspan'] = np.zeros(len(t_rv), float) - RVdatadict['Vspan']['offset']
+        if RVdatadict.has_key('Wspan') : output_dict['Wspan'] = np.zeros(len(t_rv), float) - RVdatadict['Wspan']['offset']
+        if RVdatadict.has_key('BiGauss') : output_dict['BiGauss'] = np.zeros(len(t_rv), float) - RVdatadict['BiGauss']['offset']
+        if RVdatadict.has_key('Vasy') : output_dict['Vasy'] = np.zeros(len(t_rv), float) - RVdatadict['Vasy']['offset']
 
     else:
         nb_star, FWHM, contrast, flux, rv0 = CCF_prop(t_rv, spectro, mask, *args)
 
         # CCF parameters
-        cond_RV_CCF = n.logical_and(RV_CCF_ALL > n.min(rv0) - 5.*max(FWHM)/2.3548, RV_CCF_ALL < n.max(rv0) + 5.*max(FWHM)/2.3548)
-        RV_CCF = RV_CCF_ALL[n.where(cond_RV_CCF)[0]]
-        CCF = n.zeros([nb_star, len(RV_CCF)], float)
+        cond_RV_CCF = np.logical_and(RV_CCF_ALL > np.min(rv0) - 5.*max(FWHM)/2.3548, RV_CCF_ALL < np.max(rv0) + 5.*max(FWHM)/2.3548)
+        RV_CCF = RV_CCF_ALL[np.where(cond_RV_CCF)[0]]
+        CCF = np.zeros([nb_star, len(RV_CCF)], float)
 
         # Make fixed CCFs
         count = 0
-        CCF_sum = n.zeros(len(RV_CCF), float)
+        CCF_sum = np.zeros(len(RV_CCF), float)
         while isinstance(args[count], Star):
             CCF[count] = make_CCF(RV_CCF, rv0[count,0], FWHM[count], contrast[count], flux[count])
             CCF_sum+=CCF[count]
@@ -571,19 +571,19 @@ def PASTIS_RV(t_rv, RVdatadict, *args):
                 CCF[o] = make_CCF(RV_CCF, rv0[o,i], FWHM[o], contrast[o], flux[o])
                 CCF_sum+=CCF[o]
 
-            normalized_CCF = n.array(CCF_sum/max(CCF_sum))
+            normalized_CCF = np.array(CCF_sum/max(CCF_sum))
 
             # Fit the blended CCF
 
-            if RVdatadict.has_key('RV') \
-                    or RVdatadict.has_key('CTRS') \
-                    or RVdatadict.has_key('FWHM') \
-                    or RVdatadict.has_key('BIS') \
-                    or RVdatadict.has_key('Vspan') \
-                    or RVdatadict.has_key('Wspan') \
-                    or RVdatadict.has_key('BiGauss') \
+            if RVdatadict.has_key('RV')\
+                    or RVdatadict.has_key('CTRS')\
+                    or RVdatadict.has_key('FWHM')\
+                    or RVdatadict.has_key('BIS')\
+                    or RVdatadict.has_key('Vspan')\
+                    or RVdatadict.has_key('Wspan')\
+                    or RVdatadict.has_key('BiGauss')\
                     or RVdatadict.has_key('Vasy') :
-                p0 = [contrast[n.argmax(flux*contrast/100.)], rv0[n.argmax(flux*contrast/100.),i], FWHM[n.argmax(flux*contrast/100.)]/2.3548]
+                p0 = [contrast[np.argmax(flux*contrast/100.)], rv0[np.argmax(flux*contrast/100.),i], FWHM[np.argmax(flux*contrast/100.)]/2.3548]
                 flag = 0
                 try:
                     CCF_res, flag = fitgauss(RV_CCF, normalized_CCF, p0)

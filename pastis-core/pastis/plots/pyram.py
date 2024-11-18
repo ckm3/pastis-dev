@@ -1,4 +1,4 @@
-import numpy as n
+import numpy as np
 from scipy import stats
 import pylab as p
 
@@ -11,7 +11,7 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
     
     vd = C.get_value_dict()
 
-    nBI = n.round(len(vd.values()[0])*BI, 0)
+    nBI = np.round(len(vd.values()[0])*BI, 0)
     if Nlast is not None:
         nf = Nlast
     else:
@@ -22,8 +22,8 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
     fig.subplots_adjust(bottom= 0.1, top=0.95, hspace = 0.0, wspace = 0.0)
 
     axs = []
-    for i, key1 in enumerate(n.sort(vd.keys())[1:]):
-        for j, key2 in enumerate(n.sort(vd.keys())[:-1]):
+    for i, key1 in enumerate(np.sort(vd.keys())[1:]):
+        for j, key2 in enumerate(np.sort(vd.keys())[:-1]):
             if j > i: continue
             ax = fig.add_subplot(Nvar-1, Nvar-1, i*(Nvar - 1) + j + 1)
             axs.append(ax)
@@ -31,11 +31,11 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
 
             # Set position of major ticks
             xl = ax.get_xlim(); dxl = xl[1]-xl[0]
-            xts = n.arange(xl[0], xl[1], dxl/4.0)
+            xts = np.arange(xl[0], xl[1], dxl/4.0)
             ax.xaxis.set_major_locator(p.FixedLocator(xts[1:]))
 
             yl = ax.get_ylim(); dyl = yl[1]-yl[0]
-            yts = n.arange(yl[0], yl[1], dyl/4.0)
+            yts = np.arange(yl[0], yl[1], dyl/4.0)
             ax.yaxis.set_major_locator(p.FixedLocator(yts[1:]))
 
             if i != len(vd.keys())-2:
@@ -49,7 +49,7 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
                 else:
                     ndecimal = 1
 
-                ax.xaxis.set_major_formatter(p.FixedFormatter(n.round(xts[1:],
+                ax.xaxis.set_major_formatter(p.FixedFormatter(np.round(xts[1:],
                                                                       ndecimal)
                                                               )
                                              )
@@ -74,7 +74,7 @@ def pyramid(C, BI=0.0, Nlast=None, sample=1, label=None, filename=None):
                     ndecimal = 1
                 
 
-                ax.yaxis.set_major_formatter(p.FixedFormatter(n.round(yts[1:],
+                ax.yaxis.set_major_formatter(p.FixedFormatter(np.round(yts[1:],
                                                                       ndecimal)
                                                               )
                                              )
@@ -219,11 +219,11 @@ def pyramid_cont(C, bi=None, nlast=None, sample=1, filename=None,
     axs = []
 
     if transpose:
-        keys1 = n.sort(vd.keys())[:-1]
-        keys2 = n.sort(vd.keys())[1:]
+        keys1 = np.sort(vd.keys())[:-1]
+        keys2 = np.sort(vd.keys())[1:]
     else:
-        keys2 = n.sort(list(vd.keys()))[:-1]
-        keys1 = n.sort(list(vd.keys()))[1:]
+        keys2 = np.sort(list(vd.keys()))[:-1]
+        keys1 = np.sort(list(vd.keys()))[1:]
         
     for i, key1 in enumerate(keys1):
         for j, key2 in enumerate(keys2):
@@ -232,7 +232,7 @@ def pyramid_cont(C, bi=None, nlast=None, sample=1, filename=None,
             axs.append(ax)
 
             #ax.plot(vd[key2][nBI: nf: sample], vd[key1][nBI: nf: sample], 'k,')
-            H, xedges, yedges = n.histogram2d(vd[key2][bi: nlast: sample],
+            H, xedges, yedges = np.histogram2d(vd[key2][bi: nlast: sample],
                                               vd[key1][bi: nlast: sample],
                                               bins = (nbins, nbins),
                                               normed = False)
@@ -244,7 +244,7 @@ def pyramid_cont(C, bi=None, nlast=None, sample=1, filename=None,
                 # Find Bayesian contour limits
                 lims = find_limits(H, confidence_levels)
 
-            lims = lims[::-1]; lims.append(n.sum(H))
+            lims = lims[::-1]; lims.append(np.sum(H))
 
             ax.contourf(0.5*(xedges[:-1] + xedges[1:]),
                         0.5*(yedges[:-1] + yedges[1:]),
@@ -268,11 +268,11 @@ def pyramid_cont(C, bi=None, nlast=None, sample=1, filename=None,
             
             # Set position of major ticks
             xl = ax.get_xlim(); dxl = xl[1]-xl[0]
-            xts = n.arange(xl[0], xl[1], dxl/4.0)
+            xts = np.arange(xl[0], xl[1], dxl/4.0)
             ax.xaxis.set_major_locator(p.FixedLocator(xts[1:]))
 
             yl = ax.get_ylim(); dyl = yl[1]-yl[0]
-            yts = n.arange(yl[0], yl[1], dyl/4.0)
+            yts = np.arange(yl[0], yl[1], dyl/4.0)
             ax.yaxis.set_major_locator(p.FixedLocator(yts[1:]))
 
             if i != len(vd.keys())-2:
@@ -287,7 +287,7 @@ def pyramid_cont(C, bi=None, nlast=None, sample=1, filename=None,
                 else:
                     ndecimal = 1
 
-                ax.xaxis.set_major_formatter(p.FixedFormatter(n.round(xts[1:],
+                ax.xaxis.set_major_formatter(p.FixedFormatter(np.round(xts[1:],
                                                                       ndecimal)
                                                               )
                                              )
@@ -329,7 +329,7 @@ def pyramid_cont(C, bi=None, nlast=None, sample=1, filename=None,
                 else:
                     ndecimal = 1
                 
-                ax.yaxis.set_major_formatter(p.FixedFormatter(n.round(yts[1:], ndecimal)))
+                ax.yaxis.set_major_formatter(p.FixedFormatter(np.round(yts[1:], ndecimal)))
                 ax.yaxis.set_ticks_position('left')
                 for ytl in ax.get_yticklabels():
                     ytl.set_fontsize(fontsize)
@@ -405,11 +405,11 @@ def find_limits(H, conflevels):
     Find the limits for a pyramid plot using a Bayesian approach.
     """
 
-    N = n.sum(H)
+    N = np.sum(H)
 
     # Sort number of elements per 2D bin.
-    ind = n.argsort(H.flatten())[::-1]
-    Hs  = n.sort(H.flatten())[::-1]
+    ind = np.argsort(H.flatten())[::-1]
+    Hs  = np.sort(H.flatten())[::-1]
 
     bin1 = []; numpoints1 = 0
     bin2 = []; numpoints2 = 0

@@ -10,7 +10,7 @@
 # CLASSES used for MCMC
 ##
 import sys
-import numpy as n
+import numpy as np
 import scipy
 from math import log10, log
 
@@ -118,7 +118,7 @@ class Chain(object):
     MAKE DOC FOR METHODS
     """
 
-    def __init__(self, N, theta0, Npca = n.inf, usePCA = True):
+    def __init__(self, N, theta0, Npca = np.inf, usePCA = True):
 
         self._currentstate = theta0 #Initial state
         self.N = N  #Number of steps in chain
@@ -128,10 +128,10 @@ class Chain(object):
         self.Npca = Npca # Number of steps after which to initiate PCA
 
         
-        self.values = n.zeros((self.N, len(theta0)), dtype = float)
-        self.append(0)	
-        self._likelihood = n.zeros((self.N, 3), dtype = object)
-        self._posterior = n.zeros(self.N)
+        self.values = np.zeros((self.N, len(theta0)), dtype = float)
+        self.append(0) 
+        self._likelihood = np.zeros((self.N, 3), dtype = object)
+        self._posterior = np.zeros(self.N)
         
         # Create labeldictionary
         self._labeldict = dict((theta0[i].label, theta0[i])
@@ -149,26 +149,26 @@ class Chain(object):
             if par.jump: jumpind.append(jj)
         self.jumpind = jumpind
 
-    	    ### NEW: FOR MA
-        self._meanX = n.zeros((self.N, len(jumpind)), dtype = float)
+         ### NEW: FOR MA
+        self._meanX = np.zeros((self.N, len(jumpind)), dtype = float)
         self._meanX[0] = self.get_current_state_jumping_values()
-        self._S0 = n.diag(self.get_current_state_jumping_values()*0.1)
+        self._S0 = np.diag(self.get_current_state_jumping_values()*0.1)
 
         xx = self.get_current_state_jumping_values()
         for i in range(len(xx)):
             for j in range(len(xx)):
                 if j > i:
                     self._S0[i,j] = self._S0[j,i] = 0.1
-		    
-	   ###
-	
+      
+    ###
+ 
         # For PCA
         self._currentstatePCA = None
         if Npca < N:
             njump = len(jumpind)
             # Initialice PCAvalues array
-            self.PCAvalues = n.zeros((N - Npca, njump), dtype = float)
-            self.M = n.identity(njump) # Change-of-base matrix (identity)
+            self.PCAvalues = np.zeros((N - Npca, njump), dtype = float)
+            self.M = np.identity(njump) # Change-of-base matrix (identity)
 
             
     def append(self, i):
@@ -233,20 +233,20 @@ class Chain(object):
         for par in self._currentstate:
             values.append(par.get_value())
         #return n.resize(n.array(values), (1, len(values)))
-        return n.array(values)
+        return np.array(values)
 
     def get_current_state_jumping_values(self):
         values = []
         for par in self._currentstate:
             if par.jump: values.append(par.get_value())
         #return n.resize(n.array(values), (1, len(values)))
-        return n.array(values)
+        return np.array(values)
     
     def get_current_pca_values(self):
         values = []
         for par in self._currentstatePCA:
             values.append(par.get_value())
-        return n.array(values)
+        return np.array(values)
             
         
     def get_value_dict(self):
@@ -275,7 +275,7 @@ class Chain(object):
                 medianvalues[skey[0]] = {}
                 
             if key in vd.keys():
-                bvi = n.median(vd[key][round(BI*self.N):])
+                bvi = np.median(vd[key][round(BI*self.N):])
                 medianvalues[skey[0]][skey[1]] = [bvi, ]
             else:
                 bvi = self._labeldict[key].get_value()
@@ -290,7 +290,7 @@ class Chain(object):
         bestvalues = {}
         vd = self.get_value_dict()
         logL = self.get_logL()
-        indi = n.round(BI*self.N)
+        indi = np.round(BI*self.N)
         for key in self._labeldict.keys():
             skey = key.split('_')
             if skey[0] in bestvalues:
@@ -299,7 +299,7 @@ class Chain(object):
                 bestvalues[skey[0]] = {}
                 
             if key in vd.keys():
-                indmax = n.argmax(logL[indi:])
+                indmax = np.argmax(logL[indi:])
                 bvi = vd[key][indi:][indmax]
                 bestvalues[skey[0]][skey[1]] = [bvi, ]
             else:
@@ -314,7 +314,7 @@ class Chain(object):
         q*100% confidence limits, and nbins.
         """
         vd = self.get_value_dict()
-        istart = n.round(BI*self.N)
+        istart = np.round(BI*self.N)
         
         # Minimum and maximum prob
         qmin = (1 - q)*0.5
@@ -322,22 +322,22 @@ class Chain(object):
 
         for param in vd.keys():
             # Compute histogram, and cumulative distribution
-            m, bins = n.histogram(vd[param][istart:], nbins, cumulative = True)
+            m, bins = np.histogram(vd[param][istart:], nbins, cumulative = True)
 
-            x = bins[:-1] + 0.5*n.diff(bins)
-            ci = m.astype(float).cumsum()/n.sum(m)
+            x = bins[:-1] + 0.5*np.diff(bins)
+            ci = m.astype(float).cumsum()/np.sum(m)
 
-            imin1 = float(n.argwhere(n.less(qmin)).max())
+            imin1 = float(np.argwhere(np.less(qmin)).max())
             imin2 = imin1 + 1.0
             funmin = scipy.interp([ci[imin1], ci[imin2]], [x[imin1], x[imin2]])
             lower_limit = funmin(qmin)
 
-            imax1 = float(n.argwhere(n.less(qmax)).max())
+            imax1 = float(np.argwhere(np.less(qmax)).max())
             imax2 = imax1 + 1.0
             funmax = scipy.interp([ci[imax1], ci[imax2]], [x[imax1], x[imax2]])
             upper_limit = funmin(qmax)
 
-            medianvalue = n.median(vd[param][istart:])
+            medianvalue = np.median(vd[param][istart:])
             
             hc = upper_limit - medianvalue
             lc = medianvalue - lower_limit
@@ -368,13 +368,13 @@ class Chain(object):
         L = []
         for Llist in self._likelihood:
             L.append(Llist[0])
-        return n.array(L)
+        return np.array(L)
     
     def get_logL(self):
         logL = []
         for Llist in self._likelihood:
             logL.append(Llist[1])
-        return n.array(logL)
+        return np.array(logL)
         
     def get_Ldict(self):
         Ldict = {}
@@ -387,7 +387,7 @@ class Chain(object):
                     Ldict[key].append(Llist[2][key])
 
         for key in Ldict:
-            Ldict[key] = n.array(Ldict[key])
+            Ldict[key] = np.array(Ldict[key])
         
         return Ldict          
 
@@ -477,7 +477,7 @@ class Chain(object):
         bb = ax.hist(self.get_trace(paramname), **kwargs)
         ax.set_xlabel(xlabel, fontsize = 16)
 
-        if n.sum(bb[0]*(bb[1][1:] - bb[1][:-1])) == 1.0 and ylabel == 'N':
+        if np.sum(bb[0]*(bb[1][1:] - bb[1][:-1])) == 1.0 and ylabel == 'N':
             ylabel = 'PDF'
             
         ax.set_ylabel(ylabel, fontsize = 16)

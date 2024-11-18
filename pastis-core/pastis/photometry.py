@@ -1,5 +1,5 @@
 import sys, os
-import numpy as n
+import numpy as np
 from scipy import interpolate
 
 # import pyfits
@@ -113,15 +113,15 @@ def read_CK_spectra():
     Flux units are in erg/s/cm^2/A.
     """
     global AMz
-    AMz = n.array([-2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.2, 0.5])
+    AMz = np.array([-2.5, -2.0, -1.5, -1.0, -0.5, 0.0, 0.2, 0.5])
 
     global AMteff
-    AMteff0 = n.arange(3500.0, 13000.0, 250.0)
-    AMteff1 = n.arange(13000.0, 50000.1, 1000.0)
-    AMteff = n.concatenate([AMteff0, AMteff1])
+    AMteff0 = np.arange(3500.0, 13000.0, 250.0)
+    AMteff1 = np.arange(13000.0, 50000.1, 1000.0)
+    AMteff = np.concatenate([AMteff0, AMteff1])
 
     global AMlogg
-    AMlogg = n.arange(0.0, 5.5, 0.5)
+    AMlogg = np.arange(0.0, 5.5, 0.5)
 
     ## Create dictionary with information about the model
     global infoAM
@@ -129,16 +129,16 @@ def read_CK_spectra():
         "lenAMz": len(AMz),
         "lenAMteff": len(AMteff),
         "lenAMlogg": len(AMlogg),
-        "minAMz": n.min(AMz),
-        "maxAMz": n.max(AMz),
-        "minAMteff": n.min(AMteff),
-        "maxAMteff": n.max(AMteff),
-        "minAMlogg": n.min(AMlogg),
-        "maxAMlogg": n.max(AMlogg),
+        "minAMz": np.min(AMz),
+        "maxAMz": np.max(AMz),
+        "minAMteff": np.min(AMteff),
+        "maxAMteff": np.max(AMteff),
+        "minAMlogg": np.min(AMlogg),
+        "maxAMlogg": np.max(AMlogg),
     }
 
     AMspectra = {}  # n.zeros([len(AMz), len(AMteff), len(AMlogg), 1221])
-    AMspectra01 = n.zeros([len(AMz), len(AMteff), len(AMlogg)])
+    AMspectra01 = np.zeros([len(AMz), len(AMteff), len(AMlogg)])
 
     for i, zz in enumerate(AMz):
 
@@ -167,7 +167,7 @@ def read_CK_spectra():
             # READ INDIVIDUAL SPECTRA; PUT THE IN CKspectra
             for k, logg in enumerate(AMlogg):
                 spec = table.data.field("g%02d" % (logg * 10))
-                if n.max(spec) != 0:
+                if np.max(spec) != 0:
                     AMspectra[(zz, teff, logg)] = spec / teff**4.0
                     AMspectra01[i, j, k] = 1.0
 
@@ -198,19 +198,19 @@ def read_BTsettl_spectra():
         "lenAMz": len(AMz),
         "lenAMteff": len(AMteff),
         "lenAMlogg": len(AMlogg),
-        "minAMz": n.min(AMz),
-        "maxAMz": n.max(AMz),
-        "minAMteff": n.min(AMteff),
-        "maxAMteff": n.max(AMteff),
-        "minAMlogg": n.min(AMlogg),
-        "maxAMlogg": n.max(AMlogg),
+        "minAMz": np.min(AMz),
+        "maxAMz": np.max(AMz),
+        "minAMteff": np.min(AMteff),
+        "maxAMteff": np.max(AMteff),
+        "minAMlogg": np.min(AMlogg),
+        "maxAMlogg": np.max(AMlogg),
     }
 
     ## Normalize spectra by effective temperature
     for kk in AMspectra.keys():
         AMspectra[kk] = AMspectra[kk] / kk[1] ** 4.0
 
-    AMspectra01 = n.zeros((len(AMz), len(AMteff), len(AMlogg)), "int")
+    AMspectra01 = np.zeros((len(AMz), len(AMteff), len(AMlogg)), "int")
 
     # Fill in the gaps in BTsettl grid. See notes!
     AMspectra[(0.0, 700, 5.5)] = 0.5 * (
@@ -224,7 +224,7 @@ def read_BTsettl_spectra():
         for j in range(len(AMteff)):
             for k in range(len(AMlogg)):
                 try:
-                    if n.max(AMspectra[AMz[i], AMteff[j], AMlogg[k]]) > 0:
+                    if np.max(AMspectra[AMz[i], AMteff[j], AMlogg[k]]) > 0:
                         AMspectra01[i, j, k] = 1
                 except:
                     pass
@@ -254,12 +254,12 @@ def read_WD_spectra():
 
         WDspectra[kk] = ff / kk[0] ** 4.0
 
-    WDspectra01 = n.zeros((len(AMteff), len(AMlogg)), "int")
+    WDspectra01 = np.zeros((len(AMteff), len(AMlogg)), "int")
 
     for j in range(len(WDteff)):
         for k in range(len(WDlogg)):
             try:
-                if n.max(WDspectra[WDteff[j], WDlogg[k]]) > 0:
+                if np.max(WDspectra[WDteff[j], WDlogg[k]]) > 0:
                     WDspectra01[j, k] = 1
             except:
                 pass
@@ -334,9 +334,9 @@ def get_interpolated_AM(z, teff, logg, HR=False):
     Get interpolated spectrum from AMspectra
     """
 
-    indz = n.searchsorted(AMz, z)
-    indteff = n.searchsorted(AMteff, teff)
-    indlogg = n.searchsorted(AMlogg, logg)
+    indz = np.searchsorted(AMz, z)
+    indteff = np.searchsorted(AMteff, teff)
+    indlogg = np.searchsorted(AMlogg, logg)
 
     if indz == 0 or indz == infoAM["lenAMz"]:
         raise SpectrumInterpolError(
@@ -367,9 +367,9 @@ def get_interpolated_AM(z, teff, logg, HR=False):
     # List of spectra in nodes
     if HR:
         read_wwHR()
-        spectra = n.zeros((2, 2, 2, len(wwHR)), "double")
+        spectra = np.zeros((2, 2, 2, len(wwHR)), "double")
     else:
-        spectra = n.zeros((2, 2, 2, len(ww)), "double")
+        spectra = np.zeros((2, 2, 2, len(ww)), "double")
 
     # Get the spectra from the nodes
     for i, iz in zip(range(2), (indz - 1, indz)):
@@ -400,7 +400,7 @@ def get_interpolated_AM(z, teff, logg, HR=False):
     indzz = (z - AMz[indz - 1]) / (AMz[indz] - AMz[indz - 1])
     indtt = (teff - AMteff[indteff - 1]) / (AMteff[indteff] - AMteff[indteff - 1])
     indgg = (logg - AMlogg[indlogg - 1]) / (AMlogg[indlogg] - AMlogg[indlogg - 1])
-    indices = n.array((indzz, indtt, indgg))
+    indices = np.array((indzz, indtt, indgg))
 
     # Get spectrum by trilinear interpolation
     spectrum = tools.trilinear_interpolation(spectra, indices)
@@ -424,9 +424,9 @@ def get_nearest_AM(z, teff, logg, HR=False, outsidegrid=None, isindex=False):
         indlogg = logg
 
     else:
-        indz = n.searchsorted(AMz, z)
-        indteff = n.searchsorted(AMteff, teff)
-        indlogg = n.searchsorted(AMlogg, logg)
+        indz = np.searchsorted(AMz, z)
+        indteff = np.searchsorted(AMteff, teff)
+        indlogg = np.searchsorted(AMlogg, logg)
 
     if outsidegrid == None:
         # Check if outside grid
@@ -492,11 +492,11 @@ def get_nearest_AM(z, teff, logg, HR=False, outsidegrid=None, isindex=False):
         for j in range(0, infoAM["lenAMteff"]):
             for k in range(0, infoAM["lenAMlogg"]):
                 if AMspectra01[i, j, k] == 1:
-                    dist[i, j, k] = n.sqrt(
+                    dist[i, j, k] = np.sqrt(
                         (i - indz) ** 2 + (j - indteff) ** 2 + (k - indlogg) ** 2
                     )
 
-    indimin = n.argwhere(dist == n.min(dist))[0]
+    indimin = np.argwhere(dist == np.min(dist))[0]
     # indimin = n.argmin(dist)
 
     zmin = AMz[indimin[0]]
@@ -580,7 +580,7 @@ def flux2mag(flux, photband):
     nu_eff = c * 1e10 / lambda_eff  # in Hz
 
     flux_nu = flux * c * 1e10 / nu_eff**2  # in ergs/cm^2/s/Hz
-    mag = -2.5 * n.log10(1e23 * flux_nu / ZeroMag[photband]["F0"])
+    mag = -2.5 * np.log10(1e23 * flux_nu / ZeroMag[photband]["F0"])
     return mag
 
 
@@ -613,10 +613,10 @@ def corot_colors(Rflux, Gflux, Bflux, Rcont, Gcont, Bcont):
 
     # Cumultaive total spectrum
     dw = ww[1:] - ww[:-1]
-    cumulative = n.concatenate(
+    cumulative = np.concatenate(
         (
-            n.array([0]),
-            n.cumsum(
+            np.array([0]),
+            np.cumsum(
                 (global_spectrum_corot[:-1] + global_spectrum_corot[1:]) * 0.5 * dw
             ),
         )
@@ -630,7 +630,7 @@ def corot_colors(Rflux, Gflux, Bflux, Rcont, Gcont, Bcont):
     ww_1 = ww[count]
     ww_2 = interpolate.interp1d(cumulative_norm, ww)(B_rf)
     ww_3 = interpolate.interp1d(cumulative_norm, ww)(B_rf + G_rf)
-    ww_4 = n.array(ww[n.where(cumulative_norm > 0.9999)[0][0]])
+    ww_4 = np.array(ww[np.where(cumulative_norm > 0.9999)[0][0]])
 
     # test
     # print ' RED = ',ww_3,ww_4
@@ -639,16 +639,16 @@ def corot_colors(Rflux, Gflux, Bflux, Rcont, Gcont, Bcont):
 
     # Divide CoRoT transmision in 3 filters
 
-    CoRoT_R = n.where(
-        n.logical_and(n.greater(ww, ww_3), n.less_equal(ww, ww_4)), CoRoT_W, 0.0
+    CoRoT_R = np.where(
+        np.logical_and(np.greater(ww, ww_3), np.less_equal(ww, ww_4)), CoRoT_W, 0.0
     )
 
-    CoRoT_G = n.where(
-        n.logical_and(n.greater(ww, ww_2), n.less_equal(ww, ww_3)), CoRoT_W, 0.0
+    CoRoT_G = np.where(
+        np.logical_and(np.greater(ww, ww_2), np.less_equal(ww, ww_3)), CoRoT_W, 0.0
     )
 
-    CoRoT_B = n.where(
-        n.logical_and(n.greater(ww, ww_1), n.less_equal(ww, ww_2)), CoRoT_W, 0.0
+    CoRoT_B = np.where(
+        np.logical_and(np.greater(ww, ww_1), np.less_equal(ww, ww_2)), CoRoT_W, 0.0
     )
 
     Filters["CoRoT-R"] = CoRoT_R
@@ -668,18 +668,18 @@ def corot_colors(Rflux, Gflux, Bflux, Rcont, Gcont, Bcont):
     Sloan_z = Filters["SDSS-Z"]
 
     Sloan_u2 = Sloan_u
-    Sloan_u2[n.where(Sloan_u2 > 0)] = 1.0
+    Sloan_u2[np.where(Sloan_u2 > 0)] = 1.0
     Sloan_g2 = Sloan_g
-    Sloan_g2[n.where(Sloan_g2 > 0)] = 1.0
+    Sloan_g2[np.where(Sloan_g2 > 0)] = 1.0
     Sloan_r2 = Sloan_r
-    Sloan_r2[n.where(Sloan_r2 > 0)] = 1.0
+    Sloan_r2[np.where(Sloan_r2 > 0)] = 1.0
     Sloan_i2 = Sloan_i
-    Sloan_i2[n.where(Sloan_i2 > 0)] = 1.0
+    Sloan_i2[np.where(Sloan_i2 > 0)] = 1.0
     Sloan_z2 = Sloan_z
-    Sloan_z2[n.where(Sloan_z2 > 0)] = 1.0
+    Sloan_z2[np.where(Sloan_z2 > 0)] = 1.0
 
     global CoRoT_LDC_weights
-    CoRoT_LDC_weights = n.zeros([3, 5], float)
+    CoRoT_LDC_weights = np.zeros([3, 5], float)
     for color in ["R", "G", "B"]:
         if color == "R":
             color_value = 0
@@ -693,7 +693,7 @@ def corot_colors(Rflux, Gflux, Bflux, Rcont, Gcont, Bcont):
             color_value = 2
             ww_i = ww_1
             ww_e = ww_2
-        indl = n.where(n.logical_and(ww >= ww_i, ww <= ww_e))
+        indl = np.where(np.logical_and(ww >= ww_i, ww <= ww_e))
 
         # first weight have into acount the filter coverage
         wu1 = tools.area(ww[indl], Sloan_u[indl]) / tools.area(ww, Sloan_u)
@@ -707,31 +707,31 @@ def corot_colors(Rflux, Gflux, Bflux, Rcont, Gcont, Bcont):
             ww[indl], global_spectrum_corot[indl] * Sloan_u[indl]
         ) / tools.area(ww[indl], global_spectrum_corot[indl] * Sloan_u2[indl])
 
-        if n.isnan(wu2):
+        if np.isnan(wu2):
             wu2 = 0.0
 
         wg2 = tools.area(
             ww[indl], global_spectrum_corot[indl] * Sloan_g[indl]
         ) / tools.area(ww[indl], global_spectrum_corot[indl] * Sloan_g2[indl])
-        if n.isnan(wg2):
+        if np.isnan(wg2):
             wg2 = 0.0
 
         wr2 = tools.area(
             ww[indl], global_spectrum_corot[indl] * Sloan_r[indl]
         ) / tools.area(ww[indl], global_spectrum_corot[indl] * Sloan_r2[indl])
-        if n.isnan(wr2):
+        if np.isnan(wr2):
             wr2 = 0.0
 
         wi2 = tools.area(
             ww[indl], global_spectrum_corot[indl] * Sloan_i[indl]
         ) / tools.area(ww[indl], global_spectrum_corot[indl] * Sloan_i2[indl])
-        if n.isnan(wi2):
+        if np.isnan(wi2):
             wi2 = 0.0
 
         wz2 = tools.area(
             ww[indl], global_spectrum_corot[indl] * Sloan_z[indl]
         ) / tools.area(ww[indl], global_spectrum_corot[indl] * Sloan_z2[indl])
-        if n.isnan(wz2):
+        if np.isnan(wz2):
             wz2 = 0.0
 
         # final weight
@@ -787,7 +787,7 @@ def get_interpolated_WD(teff, logg):
     indlogg1 = int(indlogg + 1.0)
 
     # List of spectra in nodes
-    spectra = n.zeros((2, 2, len(ww)), "double")
+    spectra = np.zeros((2, 2, len(ww)), "double")
 
     # Get the spectra from the nodes
     for j, iteff in zip(range(2), (indteff0, indteff1)):
@@ -801,7 +801,7 @@ def get_interpolated_WD(teff, logg):
                 raise SpectrumInterpolError("Missing node in grid.")
 
     # If all 4 nodes exist, perform a trilinear interpolation
-    indices = n.array((indteff - int(indteff), indlogg - int(indlogg)))
+    indices = np.array((indteff - int(indteff), indlogg - int(indlogg)))
 
     # Get spectrum by trilinear interpolation
     spectrum = tools.bilinear_interpolation(spectra, indices)
@@ -859,9 +859,9 @@ def get_nearest_WD(teff, logg):
     for j in range(0, len(WDteff)):
         for k in range(0, len(WDlogg)):
             if WDspectra01[j, k] == 1:
-                dist[j, k] = n.sqrt((j - indteff) ** 2 + (k - indlogg) ** 2)
+                dist[j, k] = np.sqrt((j - indteff) ** 2 + (k - indlogg) ** 2)
 
-    indimin = n.argwhere(dist == n.min(dist))[0]
+    indimin = np.argwhere(dist == np.min(dist))[0]
 
     teffmin = WDteff[indimin[0]]
     loggmin = WDlogg[indimin[1]]
@@ -876,7 +876,7 @@ def get_beaming(sp, photband):
     Compute B factor used in relativistic beaming effect.
     See Bloemen (MNRAS, 2011)
     """
-    b = 5.0 + tools.derivative(n.log(ww), n.log(sp))  # d ln F / d ln lambda
+    b = 5.0 + tools.derivative(np.log(ww), np.log(sp))  # d ln F / d ln lambda
     return tools.area(ww, NormalisedFilters[photband] * ww * sp * b) / tools.area(
         ww, NormalisedFilters[photband] * sp * ww
     )

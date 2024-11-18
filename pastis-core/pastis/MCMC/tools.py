@@ -1,7 +1,7 @@
 # Functions to transform input dictionary to list of parameters
 # and to update this dictionary to feed it back to the Object Builder
 
-import numpy as n
+import numpy as np
 
 # Intra-package imports
 from . import Objects_MCMC as objMCMC
@@ -64,7 +64,7 @@ def state_constructor(input_dict):
                 theta.append(par)
                 labeldict[par.label] = par
 
-    return n.array(theta), labeldict
+    return np.array(theta), labeldict
 
 
 def create_parameter(name, family, parlist):

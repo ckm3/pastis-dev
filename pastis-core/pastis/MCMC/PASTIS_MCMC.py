@@ -15,7 +15,7 @@ import pickle
 from scipy import stats
 import scipy
 from scipy.stats.distributions import rv_frozen
-import numpy as n
+import numpy as np
 import traceback
 
 # Intra-package imports
@@ -41,7 +41,7 @@ from ..exceptions import EvolTrackError, OutofIsochroneError, EBOPparamError
 
 
 def mcmc(input_dict, datadict, customprior_dict, N, chain=None,
-         beta=1.0, Npca=n.inf, NupdatePCA=n.inf, kPCA=1.0, Nlastupdate=n.inf,
+         beta=1.0, Npca=np.inf, NupdatePCA=np.inf, kPCA=1.0, Nlastupdate=np.inf,
          BIpca=0, randomstart=True, usePCA=True, mindiff=1e-4, AM=False,
          autocorrect=False, **kwargs):
 
@@ -242,11 +242,11 @@ def mcmc(input_dict, datadict, customprior_dict, N, chain=None,
 
             # Estimate proposal scale for principal components
             # sv = PCA.estimate_propscale_pca( C, M, S )
-            sv = n.sqrt(w.copy())
+            sv = np.sqrt(w.copy())
 
             # Create list Parameter objects for Principal Components
             x = markov_chain.get_current_state_jumping_values()
-            v = n.dot(M, x - meanV)
+            v = np.dot(M, x - meanV)
 
             U = []
             for ii in range(len(markov_chain.jumpind)):
@@ -257,7 +257,7 @@ def mcmc(input_dict, datadict, customprior_dict, N, chain=None,
             # Add list of PCs to Chain as _currentstatePCA attribute
             markov_chain._currentstatePCA = U
 
-        if ((i+1 - Npca) % NupdatePCA == 0.0 and Npca < i < Nlastupdate) and \
+        if ((i+1 - Npca) % NupdatePCA == 0.0 and Npca < i < Nlastupdate) and\
                 usePCA:
 
             print('Updating covariance matrix for PCA')
@@ -273,10 +273,10 @@ def mcmc(input_dict, datadict, customprior_dict, N, chain=None,
             M, w = PCA.run_pca(S, iteration=i)
 
             # Compute "distance" of coefficient matrices
-            distM = n.linalg.norm(markov_chain.M - M, 'fro') / \
-                n.linalg.norm(markov_chain.M, 'fro')
-            distS = n.linalg.norm(markov_chain.S - S, 'fro') / \
-                n.linalg.norm(markov_chain.S, 'fro')
+            distM = np.linalg.norm(markov_chain.M - M, 'fro') /\
+                np.linalg.norm(markov_chain.M, 'fro')
+            distS = np.linalg.norm(markov_chain.S - S, 'fro') /\
+                np.linalg.norm(markov_chain.S, 'fro')
             markov_chain.distancesM.append((i, distM))
             markov_chain.distancesS.append((i, distS))
             markov_chain.M = M
@@ -288,11 +288,11 @@ def mcmc(input_dict, datadict, customprior_dict, N, chain=None,
 
             # Estimate proposal scale for principal components
             # sv = PCA.estimate_propscale_pca( C, M, S )
-            sv = n.sqrt(w.copy())
+            sv = np.sqrt(w.copy())
 
             # Create list Parameter objects for Principal Components
             x = markov_chain.get_current_state_jumping_values()
-            v = n.dot(M, x - meanV)
+            v = np.dot(M, x - meanV)
 
             U = []
             for ii in range(len(markov_chain.jumpind)):
@@ -333,8 +333,8 @@ def mcmc(input_dict, datadict, customprior_dict, N, chain=None,
 
         # Small tweak for ciclical variables
         for cc in labeldict.keys():
-            if 'omega' in cc or 'pomega' in cc or 'Omega' in cc or 'L0' in cc \
-                    or 'M0' in cc or 'lambda0' in cc or 'spinorbit' in cc \
+            if 'omega' in cc or 'pomega' in cc or 'Omega' in cc or 'L0' in cc\
+                    or 'M0' in cc or 'lambda0' in cc or 'spinorbit' in cc\
                     or 'rotangle' in cc:
                 # Change the value of the angle variables
                 labeldict[cc]._value = (labeldict[cc].get_value()) % 360.0
@@ -572,7 +572,7 @@ def make_proposal_pca(chain, mean_values, onebyone=False):
                       .format(jumppar.label))
                 newvalue = jumppar.get_value()
             else:
-                newvalue = jumppar.get_value() + \
+                newvalue = jumppar.get_value() +\
                     scipy.random.normal(0.0, jumppar.propscale)
             
         elif hasattr(jumppar.propfunc, '__call__'):
@@ -609,7 +609,7 @@ def make_proposal_pca(chain, mean_values, onebyone=False):
     # XX = n.dot((markov_chain.M).T, vprime.T)
     # YY = n.dot((markov_chain.M).T, vprime.T) + meanV
     # print XX.shape, YY.shape
-    y = n.dot(chain.M.T, vprime) + mean_values
+    y = np.dot(chain.M.T, vprime) + mean_values
     
     # Save values in state
     for i, ind in enumerate(chain.jumpind):
@@ -644,8 +644,8 @@ def make_proposal2(markov_chain, i):
         S = markov_chain._S0
 
     elif i < 5000:
-        S = sd * n.cov(markov_chain.values[:i, markov_chain.jumpind],
-                       rowvar=0) + sd * eps * n.identity(len(xx))
+        S = sd * np.cov(markov_chain.values[:i, markov_chain.jumpind],
+                       rowvar=0) + sd * eps * np.identity(len(xx))
 
     else:
         xx2 = markov_chain._meanX[i - 2].reshape((len(xx), 1))
@@ -657,8 +657,8 @@ def make_proposal2(markov_chain, i):
         xxx = xx.reshape((len(xx), 1))
         pxx = xxx * xxx.T
 
-        S = (i - 2.)/(i - 1.) * markov_chain._S + \
-            sd/(i-1.)*((i - 1.)*pxx2 - i*pxx1 + pxx + eps*n.identity(len(xx)))
+        S = (i - 2.)/(i - 1.) * markov_chain._S +\
+            sd/(i-1.)*((i - 1.)*pxx2 - i*pxx1 + pxx + eps*np.identity(len(xx)))
     
     markov_chain._S = S.copy()
 
@@ -696,8 +696,8 @@ def update_proposal_scale(par, target_rate=0.25):
         1 - target_rate) / number_steps_since_update
 
     # Update step size
-    if (acceptance_rate - target_rate) ** 2 > update_stat and \
-        abs(acceptance_rate - target_rate) > 0.1 * target_rate and \
+    if (acceptance_rate - target_rate) ** 2 > update_stat and\
+        abs(acceptance_rate - target_rate) > 0.1 * target_rate and\
             par.Nstep_since_update >= 100:
         
         # VERSION ROLO #
@@ -849,7 +849,7 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
     has_computed_colors = False
 
     # Prepare residuals to return if using Least-Squares fit
-    res = n.zeros(0)
+    res = np.zeros(0)
 
     # Prepare list with the names of the RV observables
     rvdiags = ['RV', 'CTRS', 'FWHM', 'BIS', 'Vspan', 'Wspan',
@@ -869,7 +869,7 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
             for rvobs in rvdiags:
                 if (key + '_' + rvobs + 'offset') in labeldict:
                     offsetdict[rvobs] = {}
-                    offsetdict[rvobs]['offset'] = \
+                    offsetdict[rvobs]['offset'] =\
                         labeldict[key+'_'+rvobs+'offset'].get_value()
 
             # Get value of jitter for each observable
@@ -886,7 +886,7 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
             rvdict.update(offsetdict)
 
             # Check if need to compute oversampled RVcurve
-            if 'overtime' in datadict[key] and len(datadict[key]['overtime']) \
+            if 'overtime' in datadict[key] and len(datadict[key]['overtime'])\
                     != len(datadict[key]['data']['time']):
                 # Compute theoretical OVERSAMPLED RVcurve
                 oversampled_rv_output = PASTIS_RV(datadict[key]['overtime'],
@@ -897,7 +897,7 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
                 rvoutput = {}
                 if 'texp' in datadict[key]:
                     for rvkey in oversampled_rv_output.keys():
-                        rvoutput[rvkey] = \
+                        rvoutput[rvkey] =\
                             rebin_texp(datadict[key]['overtime'],
                                        oversampled_rv_output[rvkey],
                                        datadict[key]['data']['time'],
@@ -905,7 +905,7 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
 
                 elif 'texp' in datadict[key]['data']:
                     for rvkey in oversampled_rv_output.keys():
-                        rvoutput[rvkey] = \
+                        rvoutput[rvkey] =\
                             rebin_texp(datadict[key]['overtime'],
                                        oversampled_rv_output[rvkey],
                                        datadict[key]['data']['time'],
@@ -938,9 +938,9 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
                 likeout[key+'_'+ii] = [L, logL]
 
                 if LM:
-                    resi = (datadict[key]['data'][jj] - kk) / \
+                    resi = (datadict[key]['data'][jj] - kk) /\
                         datadict[key]['data']['s'+jj]
-                    res = n.concatenate((res, resi))
+                    res = np.concatenate((res, resi))
 
         if datadict[key]['type'] == 'PHOT':
             try:
@@ -985,7 +985,7 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
                 has_computed_colors = True
                 
             # Check if need to compute oversampled lightcurve
-            if 'overtime'in datadict[key] and len(datadict[key]['overtime']) \
+            if 'overtime'in datadict[key] and len(datadict[key]['overtime'])\
                     != len(datadict[key]['data']['time']):
                 # Compute theoretical OVERSAMPLED lightcurve
                 osft = PASTIS_PHOT(datadict[key]['overtime'], filtre,
@@ -1020,7 +1020,7 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
                 if tf is None:
                     # No transit
                     L = 0.0
-                    logL = -n.inf
+                    logL = -np.inf
 
                 else:
                     ft = PASTIS_PHOT(tf, filtre, datadict[key]['is_phase'],
@@ -1035,11 +1035,11 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
                                      jitter=jitter)
 
                 if LM:
-                    error = n.sqrt(datadict[key]['data']['sflux']**2 +
+                    error = np.sqrt(datadict[key]['data']['sflux']**2 +
                                    jitter**2)
                     # error = datadict[key]['data']['sflux']
                     resi = (datadict[key]['data']['flux'] - ft)/error
-                    res = n.concatenate((res, resi))
+                    res = np.concatenate((res, resi))
 
             likeout[key] = [L, logL]
 
@@ -1056,19 +1056,19 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
                                  jitter=jitter)
 
             if LM:
-                resi = (datadict[key]['data']['mags'] - magst) / \
+                resi = (datadict[key]['data']['mags'] - magst) /\
                     datadict[key]['data']['smags']
-                res = n.concatenate((res, resi))
+                res = np.concatenate((res, resi))
 
             likeout[key] = [L, logL]
     ##
             
     # Combine likelihoods
-    L = n.array(list(likeout.values()))[:, 0]
-    logL = n.array(list(likeout.values()))[:, 1]
+    L = np.array(list(likeout.values()))[:, 0]
+    logL = np.array(list(likeout.values()))[:, 1]
 
-    Lcomb = n.prod(L)
-    logLcomb = n.sum(logL)
+    Lcomb = np.prod(L)
+    logLcomb = np.sum(logL)
 
     # CHANGED WHEN GOING TO PACKAGE FORMULATION ####
     if 'global_spectrum' in SED.__dict__:
@@ -1083,7 +1083,7 @@ def get_likelihood(state, input_dict, datadict, labeldict, autocorrect,
 def likelihood(y, ey, yt, distribution='normal', jitter=0.0, distrib_params=()):
 
     # Add jitter term
-    ey = n.sqrt(ey*ey + jitter*jitter)
+    ey = np.sqrt(ey*ey + jitter*jitter)
     
     # Multiply error by jitter term
     # ey = jitter*ey
@@ -1092,7 +1092,7 @@ def likelihood(y, ey, yt, distribution='normal', jitter=0.0, distrib_params=()):
 
     if distribution == 'normal':
         dist_func = stats.norm.pdf  # Be careful with the normalization check!
-        logp = -0.5*(res_norm*res_norm + n.log(2.0*pi*ey*ey))
+        logp = -0.5*(res_norm*res_norm + np.log(2.0*pi*ey*ey))
         
     elif distribution == 'poisson':
         dist_func = stats.poisson.pmf
@@ -1113,7 +1113,7 @@ def likelihood(y, ey, yt, distribution='normal', jitter=0.0, distrib_params=()):
         return 0.0, -1e308
     """
     
-    L = n.prod(p)
-    logL = n.sum(logp)
+    L = np.prod(p)
+    logL = np.sum(logp)
 
     return L, logL

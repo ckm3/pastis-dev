@@ -1,5 +1,5 @@
 import os, sys
-import numpy as n
+import numpy as np
 import cPickle as pickle
 from scipy import interpolate
 
@@ -15,29 +15,29 @@ def bin_BTsettl_spectra(redfactor=4.0, node=""):
 
     ### Define nodes in grid to use.
     global BTteff
-    BTteff0 = n.arange(4, 71)
-    BTteff1 = n.arange(72, 121, 2)
-    BTteff2 = n.arange(125, 200, 5)
-    BTteff3 = n.arange(200, 710, 10)
-    BTteff = n.concatenate([BTteff0, BTteff1, BTteff2, BTteff3])
+    BTteff0 = np.arange(4, 71)
+    BTteff1 = np.arange(72, 121, 2)
+    BTteff2 = np.arange(125, 200, 5)
+    BTteff3 = np.arange(200, 710, 10)
+    BTteff = np.concatenate([BTteff0, BTteff1, BTteff2, BTteff3])
 
     global BTlogg
-    BTlogg = n.arange(-0.5, 6.1, 0.5)
+    BTlogg = np.arange(-0.5, 6.1, 0.5)
 
     global BTz
-    BTz1 = n.arange(-4.0, 0.1, 0.5)
-    BTz = n.concatenate([BTz1, n.array([0.3, 0.5])])
+    BTz1 = np.arange(-4.0, 0.1, 0.5)
+    BTz = np.concatenate([BTz1, np.array([0.3, 0.5])])
 
     ### Define resolution array
-    ww1 = n.arange(10.0, 3600.0, 0.1)
-    ww2 = n.arange(3600.0, 10600.0, 0.05)
-    ww3 = n.arange(10600.0, 25000.0, 0.2)
-    ww4 = n.arange(2.5e4, 5.2e4, 0.5)
-    ww5 = n.arange(5.2e4, 2.7e5, 10.0)
-    ww6 = n.arange(2.7e5, 8.0e5, 100.0)
-    ww7 = n.arange(8.0e5, 2.0e6, 1000.0)
-    ww8 = n.arange(2.0e6, 1e7, 5000.0)
-    wwHR = n.concatenate((ww1, ww2, ww3, ww4, ww5, ww6, ww7, ww8))
+    ww1 = np.arange(10.0, 3600.0, 0.1)
+    ww2 = np.arange(3600.0, 10600.0, 0.05)
+    ww3 = np.arange(10600.0, 25000.0, 0.2)
+    ww4 = np.arange(2.5e4, 5.2e4, 0.5)
+    ww5 = np.arange(5.2e4, 2.7e5, 10.0)
+    ww6 = np.arange(2.7e5, 8.0e5, 100.0)
+    ww7 = np.arange(8.0e5, 2.0e6, 1000.0)
+    ww8 = np.arange(2.0e6, 1e7, 5000.0)
+    wwHR = np.concatenate((ww1, ww2, ww3, ww4, ww5, ww6, ww7, ww8))
 
     ### To define wavelength array, read smallest spectrum
     smallest = "lte010-4.5-0.0.BT-Settl.dat.bz2"
@@ -49,14 +49,14 @@ def bin_BTsettl_spectra(redfactor=4.0, node=""):
     f.close()
     os.system("bzip2 %s" % smallfile[:-4])
 
-    wwLR = n.zeros((len(lines),), "double")
+    wwLR = np.zeros((len(lines),), "double")
 
     for i, ll in enumerate(lines):
         wwLR[i] = float(ll.replace("D", "e").split()[0])
 
     ###
     # Keep only up to 300,000 A and from 2900 A
-    wwLR = n.compress(n.logical_and(wwLR <= 3.0e5, wwLR >= 2900), wwLR)
+    wwLR = np.compress(np.logical_and(wwLR <= 3.0e5, wwLR >= 2900), wwLR)
 
     ### Define global wavelength array
     ww = wwLR[::redfactor]
@@ -66,8 +66,8 @@ def bin_BTsettl_spectra(redfactor=4.0, node=""):
     deltal = 0.5 * (ww[:-1] - ww[1:])
 
     global indiu, indil
-    indiu = n.zeros((len(ww),), "int")
-    indil = n.zeros((len(ww),), "int")
+    indiu = np.zeros((len(ww),), "int")
+    indil = np.zeros((len(ww),), "int")
 
     ### Compute indices of wwHR corresponding to each bin
     print("Indices")
@@ -75,20 +75,20 @@ def bin_BTsettl_spectra(redfactor=4.0, node=""):
 
         if jj == 0:
             indil[jj] = 0
-            cond = n.less_equal(wwHR, ww[jj] + deltau[jj])
-            indiu[jj] = n.argwhere(cond)[-1, 0]
+            cond = np.less_equal(wwHR, ww[jj] + deltau[jj])
+            indiu[jj] = np.argwhere(cond)[-1, 0]
 
         elif jj == len(ww) - 1:
             indiu[jj] = len(wwHR) - 1
-            cond = n.greater(wwHR, ww[jj] + deltal[jj - 1])
-            indil[jj] = n.argwhere(cond)[0, 0]
+            cond = np.greater(wwHR, ww[jj] + deltal[jj - 1])
+            indil[jj] = np.argwhere(cond)[0, 0]
 
         else:
-            cond = n.logical_and(
-                n.greater(wwHR, ww[jj] + deltal[jj - 1]),
-                n.less_equal(wwHR, ww[jj] + deltau[jj]),
+            cond = np.logical_and(
+                np.greater(wwHR, ww[jj] + deltal[jj - 1]),
+                np.less_equal(wwHR, ww[jj] + deltau[jj]),
             )
-            ind = n.argwhere(cond)
+            ind = np.argwhere(cond)
             indil[jj] = ind[0, 0]
             indiu[jj] = ind[-1, 0]
     print("Indices DONE")
@@ -129,7 +129,7 @@ def bin_BTsettl_spectra(redfactor=4.0, node=""):
                 nip = 100 * Ni / Ntotal
                 if i == 0 and j == 0 and k == 0:
                     sys.stdout.write("Progress... %02d %%" % nip)
-                elif n.round(nip) % 1 == 0:
+                elif np.round(nip) % 1 == 0:
                     sys.stdout.write("\b" * 4 + "%02d %%" % nip)
                 sys.stdout.flush()
 
@@ -167,8 +167,8 @@ def bin_BTsettl_spectra(redfactor=4.0, node=""):
                 os.system("bzip2 %s" % filepath[:-4])
 
                 #
-                wave = n.zeros((len(lines),), "double")
-                flux = n.zeros((len(lines),), "double")
+                wave = np.zeros((len(lines),), "double")
+                flux = np.zeros((len(lines),), "double")
 
                 for ii, ll in enumerate(lines):
                     ll = ll.replace("D", "e")
@@ -181,11 +181,11 @@ def bin_BTsettl_spectra(redfactor=4.0, node=""):
                 )(wwHR)
 
                 # Prepare flux array
-                ff = n.zeros(len(ww))
+                ff = np.zeros(len(ww))
 
                 for jj in xrange(len(ww)):
                     ## Bin spectrum
-                    ff[jj] = n.mean(ffHR[indil[jj] : indiu[jj] + 1])
+                    ff[jj] = np.mean(ffHR[indil[jj] : indiu[jj] + 1])
 
                 # Put mean spectrum in BTspectra dict
                 # BTspectra[i, j, k] = 10**(ff - 8.0)
@@ -216,33 +216,33 @@ def envolvente_BTsettl_spectra():
     outdir = "/data/PASTIS/lib/BT-Settl/Flux_envolvente/"
 
     ### Define nodes in grid to use.
-    BTteff0 = n.arange(4, 71)
-    BTteff1 = n.arange(72, 121, 2)
-    BTteff2 = n.arange(125, 200, 5)
-    BTteff3 = n.arange(200, 710, 10)
-    BTteff = n.concatenate([BTteff0, BTteff1, BTteff2, BTteff3])
+    BTteff0 = np.arange(4, 71)
+    BTteff1 = np.arange(72, 121, 2)
+    BTteff2 = np.arange(125, 200, 5)
+    BTteff3 = np.arange(200, 710, 10)
+    BTteff = np.concatenate([BTteff0, BTteff1, BTteff2, BTteff3])
 
-    BTlogg = n.arange(-0.5, 6.1, 0.5)
+    BTlogg = np.arange(-0.5, 6.1, 0.5)
 
-    BTz1 = n.arange(-4.0, 0.1, 0.5)
-    BTz = n.concatenate([BTz1, n.array([0.3, 0.5])])
+    BTz1 = np.arange(-4.0, 0.1, 0.5)
+    BTz = np.concatenate([BTz1, np.array([0.3, 0.5])])
 
     ### Define resolution array
-    ww1 = n.arange(10.0, 3600.0, 0.1)
-    ww2 = n.arange(3600.0, 10600.0, 0.05)
-    ww3 = n.arange(10600.0, 25000.0, 0.2)
-    ww4 = n.arange(2.5e4, 5.2e4, 0.5)
-    ww5 = n.arange(5.2e4, 2.7e5, 10.0)
-    ww6 = n.arange(2.7e5, 8.0e5, 100.0)
-    ww7 = n.arange(8.0e5, 2.0e6, 1000.0)
-    ww8 = n.arange(2.0e6, 1e7, 5000.0)
-    wwHR = n.concatenate((ww1, ww2, ww3, ww4, ww5, ww6, ww7, ww8))
+    ww1 = np.arange(10.0, 3600.0, 0.1)
+    ww2 = np.arange(3600.0, 10600.0, 0.05)
+    ww3 = np.arange(10600.0, 25000.0, 0.2)
+    ww4 = np.arange(2.5e4, 5.2e4, 0.5)
+    ww5 = np.arange(5.2e4, 2.7e5, 10.0)
+    ww6 = np.arange(2.7e5, 8.0e5, 100.0)
+    ww7 = np.arange(8.0e5, 2.0e6, 1000.0)
+    ww8 = np.arange(2.0e6, 1e7, 5000.0)
+    wwHR = np.concatenate((ww1, ww2, ww3, ww4, ww5, ww6, ww7, ww8))
 
     # Keep only HARPS-SOPHIE-ESPaDOns range
     # HARPS:    3780 -  6910 A
     # SOPHIE:   3872 -  6943 A
     # ESPaDOns: 3700 - 10050 A
-    wwHR = n.compress(n.logical_and(wwHR >= 3700, wwHR <= 10050), wwHR)
+    wwHR = np.compress(np.logical_and(wwHR >= 3700, wwHR <= 10050), wwHR)
 
     fout = open(outdir + "lambda.pickle", "w")
     pickle.dump(wwHR, fout)
@@ -276,7 +276,7 @@ def envolvente_BTsettl_spectra():
                 nip = 100 * Ni / Ntotal
                 if i == 0 and j == 0 and k == 0:
                     sys.stdout.write("Progress... %02d %%" % nip)
-                elif n.round(nip) % 1 == 0:
+                elif np.round(nip) % 1 == 0:
                     sys.stdout.write("\b" * 4 + "%02d %%" % nip)
                 sys.stdout.flush()
 
@@ -314,8 +314,8 @@ def envolvente_BTsettl_spectra():
                 os.system("bzip2 %s" % filepath[:-4])
 
                 #
-                wave = n.zeros((len(lines),), "double")
-                flux = n.zeros((len(lines),), "double")
+                wave = np.zeros((len(lines),), "double")
+                flux = np.zeros((len(lines),), "double")
 
                 for ii, ll in enumerate(lines):
                     ll = ll.replace("D", "e")
@@ -357,13 +357,13 @@ def WD_spectra():
 
     ### Define nodes in grid to use.
     global WDteff
-    WDteff0 = n.arange(10, 12.1) * 1e3
-    WDteff1 = n.arange(14, 19.1) * 1e3
-    WDteff2 = n.arange(20, 40.1, 2) * 1e3
-    WDteff = n.concatenate([WDteff0, WDteff1, WDteff2])
+    WDteff0 = np.arange(10, 12.1) * 1e3
+    WDteff1 = np.arange(14, 19.1) * 1e3
+    WDteff2 = np.arange(20, 40.1, 2) * 1e3
+    WDteff = np.concatenate([WDteff0, WDteff1, WDteff2])
 
     global WDlogg
-    WDlogg = n.arange(7.0, 9.1, 0.25)
+    WDlogg = np.arange(7.0, 9.1, 0.25)
 
     WDspectra = {}
 
@@ -381,7 +381,7 @@ def WD_spectra():
             nip = 100 * Ni / Ntotal
             if j == 0 and k == 0:
                 sys.stdout.write("Progress... %02d %%" % nip)
-            elif n.round(nip) % 1 == 0:
+            elif np.round(nip) % 1 == 0:
                 sys.stdout.write("\b" * 4 + "%02d %%" % nip)
                 sys.stdout.flush()
 
@@ -403,7 +403,7 @@ def WD_spectra():
             Ni = Ni + 1
             f = open(filepath, "r")
             print(filepath)
-            wave, flux = n.loadtxt(filepath, usecols=(0, 1), unpack=True, skiprows=33)
+            wave, flux = np.loadtxt(filepath, usecols=(0, 1), unpack=True, skiprows=33)
             if Ni == 1:
                 WDww = wave
             ff = interpolate.interp1d(wave, flux, bounds_error=False, fill_value=0.0)(

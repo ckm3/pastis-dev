@@ -1,5 +1,5 @@
 from math import pi, log10
-import numpy as n
+import numpy as np
 
 # Intra-package imports
 # from . import *
@@ -58,7 +58,7 @@ class Star(object):
         self.logage = kwargs.pop("logage", None)
         self.age = kwargs.pop("age", None)
         if self.logage is None and self.age is not None:
-            self.logage = n.log10(self.age * 1e9)
+            self.logage = np.log10(self.age * 1e9)
 
         self.dens = kwargs.pop("dens", None)
 
@@ -229,7 +229,7 @@ class Star(object):
             isinstance(self.ub, float) or isinstance(self.ub, int)
         ):
             # Return same coefficients independetly of photband demanded
-            return n.array([self.ua, self.ub])
+            return np.array([self.ua, self.ub])
 
         elif isinstance(self.ua, dict) and isinstance(self.ub, dict):
             try:
@@ -237,7 +237,7 @@ class Star(object):
                 if (isinstance(uai, float) or isinstance(uai, int)) and (
                     isinstance(ubi, float) or isinstance(ubi, int)
                 ):
-                    return n.array([uai, ubi])
+                    return np.array([uai, ubi])
                 else:
                     ldark.get_LD(self.teff, self.logg, self.z, photband)
 
@@ -337,9 +337,9 @@ class Star(object):
         """
         if spotmodel == "Macula" and self.Nspots > 0:
 
-            star = n.array(
+            star = np.array(
                 [
-                    self.rotangle * n.pi / 180.0,
+                    self.rotangle * np.pi / 180.0,
                     self.period,
                     self.kappa2,
                     self.kappa4,
@@ -353,8 +353,8 @@ class Star(object):
                     self.d4,
                 ]
             )
-            inst = n.array([[1.0], [1.0]])
-            spot = n.array([n.zeros(self.Nspots)] * 8)
+            inst = np.array([[1.0], [1.0]])
+            spot = np.array([np.zeros(self.Nspots)] * 8)
             for i in range(self.Nspots):
                 for j, spotparam in enumerate(
                     [
@@ -374,7 +374,7 @@ class Star(object):
                         or spotparam == "phi0"
                         or spotparam == "alphamax"
                     ):
-                        spot[j][i] = spot[j][i] * n.pi / 180.0
+                        spot[j][i] = spot[j][i] * np.pi / 180.0
                         # longitud, latitud and spot size in radians
 
             lcspots = macula(t, star, spot, inst)
@@ -382,7 +382,7 @@ class Star(object):
             return lcspots
 
         else:
-            return n.ones(len(t))
+            return np.ones(len(t))
 
 
 class Target(Star):
@@ -400,14 +400,14 @@ class Target(Star):
         """Get parameters from evolution models."""
         # Get Target Star parameters from evolution tracks
         mact, logL, logage = iso.get_stellarparams_target(
-            self.z, self.logg, n.log10(self.teff)
+            self.z, self.logg, np.log10(self.teff)
         )
         self.L = 10**logL
         self.logage = logage
         self.mact = mact
 
         # Compute radius
-        self.R = n.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
+        self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
 
         if output:
             return mact, self.R, self.L, logage
@@ -437,7 +437,7 @@ class Blend(Star):
         self.L = 10**logL
 
         # Compute radius
-        self.R = n.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
+        self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
 
         if output:
             return mact, self.R, self.L, self.teff, self.logg
@@ -466,7 +466,7 @@ class PlanetHost(Star):
         self.L = 10**logL
 
         # Compute radius
-        self.R = n.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
+        self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
 
         # Compute logg from mact, and R
         self.logg = log10(
@@ -490,7 +490,7 @@ class WhiteDwarf(Star):
         self.logage = iso.get_WD_logage(self.teff, self.logg)
         # self.R = kwargs.pop('R', n.sqrt((G*1e3*self.mact*Msun*1e3)/
         # (10**self.logg))/(Rsun*1e2))
-        self.R = n.sqrt((G * 1e3 * self.mact * Msun * 1e3) / (10**self.logg)) / (
+        self.R = np.sqrt((G * 1e3 * self.mact * Msun * 1e3) / (10**self.logg)) / (
             Rsun * 1e2
         )
 
@@ -514,7 +514,7 @@ class WhiteDwarf(Star):
             spectrum = phot.get_nearest_WD(teff, logg)
 
         # Correct from distance, extinction, and radius
-        spectrum = spectrum * n.pi * (self.R / (self.dist * pc2Rsun)) ** 2
+        spectrum = spectrum * np.pi * (self.R / (self.dist * pc2Rsun)) ** 2
         spectrum = spectrum * 10 ** (-0.4 * ext_law(ww) * self.ebmv)
         self.spectrum = spectrum
 
@@ -609,10 +609,10 @@ class Triple(object):
             obj2.mact
             * Msun
             / (((obj2.mact + obj1.mact) * Msun) ** (2.0 / 3.0))
-            * ((2.0 * n.pi * G) ** (1.0 / 3.0))
+            * ((2.0 * np.pi * G) ** (1.0 / 3.0))
             / ((orbital_parameters.P * 86400.0) ** (1.0 / 3.0))
-            * n.sin(orbital_parameters.incl)
-            / n.sqrt(1.0 - orbital_parameters.ecc**2)
+            * np.sin(orbital_parameters.incl)
+            / np.sqrt(1.0 - orbital_parameters.ecc**2)
             / 1000.0
         )
 
@@ -624,7 +624,7 @@ class Triple(object):
         """
         phase_0 = (
             2.0
-            * n.pi
+            * np.pi
             * (
                 (t - self.orbital_parameters.T0)
                 % self.orbital_parameters.P
@@ -639,7 +639,7 @@ class Triple(object):
         """
         phase_p = (
             2.0
-            * n.pi
+            * np.pi
             * (
                 (t - self.orbital_parameters.Tp)
                 % self.orbital_parameters.P
@@ -652,13 +652,13 @@ class Triple(object):
 
         if self.orbital_parameters is None:
             if component == "object1":
-                return n.ones(len(t)) * self.object1.v0 + (
+                return np.ones(len(t)) * self.object1.v0 + (
                     self.drift1 * (t - TrefRV)
                     + self.drift2 * (t - TrefRV) ** 2
                     + self.drift3 * (t - TrefRV) ** 3
                 )
             elif component == "object2":
-                return n.ones(len(t)) * self.object2.v0 + (
+                return np.ones(len(t)) * self.object2.v0 + (
                     self.drift1 * (t - TrefRV)
                     + self.drift2 * (t - TrefRV) ** 2
                     + self.drift3 * (t - TrefRV) ** 3
@@ -669,7 +669,7 @@ class Triple(object):
 
         if isphase:
             # Convert transit phase to periastron phase
-            Mc = self.orbital_parameters.get_E0() - ecc * n.sin(
+            Mc = self.orbital_parameters.get_E0() - ecc * np.sin(
                 self.orbital_parameters.get_E0()
             )
             M = 2.0 * pi * t - Mc
@@ -682,7 +682,7 @@ class Triple(object):
 
         rv = (
             self.v0
-            + K * (n.cos(nu + omega) + ecc * n.cos(omega))
+            + K * (np.cos(nu + omega) + ecc * np.cos(omega))
             + (
                 self.drift1 * (t - TrefRV)
                 + self.drift2 * (t - TrefRV) ** 2
@@ -749,7 +749,7 @@ class Planet(object):
         Return the orbital phase, in the transit definition
         """
         orbital_parameters = self.orbital_parameters
-        phase_0 = 2 * n.pi * (t - orbital_parameters.T0) / orbital_parameters.P % 1
+        phase_0 = 2 * np.pi * (t - orbital_parameters.T0) / orbital_parameters.P % 1
         return phase_0
 
     def get_phase_periastron(self, t):
@@ -757,7 +757,7 @@ class Planet(object):
         Return the orbital phase, in the periastron passage definition.
         """
         orbital_parameters = self.orbital_parameters
-        phase_p = 2 * n.pi * (t - orbital_parameters.Tp) / orbital_parameters.P % 1
+        phase_p = 2 * np.pi * (t - orbital_parameters.Tp) / orbital_parameters.P % 1
         return phase_p
 
     def get_LD(self, photband):
@@ -897,18 +897,18 @@ class PlanSys(object):
 
             if planet.orbital_parameters.bprime is not None and planet.ar is not None:
                 cosi = planet.orbital_parameters.bprime / planet.ar
-                incl = n.arccos(cosi)
+                incl = np.arccos(cosi)
                 planet.orbital_parameters.incl = incl
 
             elif planet.orbital_parameters.b is not None and planet.ar is not None:
                 ecc = planet.orbital_parameters.ecc
                 nu0 = pi / 2.0 - planet.orbital_parameters.omega
                 bprime = (
-                    planet.orbital_parameters.b / (1 - ecc**2) * (1 + ecc * n.cos(nu0))
+                    planet.orbital_parameters.b / (1 - ecc**2) * (1 + ecc * np.cos(nu0))
                 )
                 planet.orbital_parameters.bprime = bprime
                 cosi = bprime / planet.ar
-                incl = n.arccos(cosi)
+                incl = np.arccos(cosi)
                 planet.orbital_parameters.incl = incl
 
             self.planets.append(planet)
@@ -935,10 +935,10 @@ class PlanSys(object):
                 planet.Mp
                 * Mjup
                 / ((planet.Mp * Mjup + self.star.mact * Msun) ** (2.0 / 3.0))
-                * ((2.0 * n.pi * G) ** (1.0 / 3.0))
+                * ((2.0 * np.pi * G) ** (1.0 / 3.0))
                 / ((op.P * 86400.0) ** (1.0 / 3.0))
-                * n.sin(op.incl)
-                / n.sqrt(1.0 - op.ecc**2)
+                * np.sin(op.incl)
+                / np.sqrt(1.0 - op.ecc**2)
                 / 1000.0
             )
             return K
@@ -953,14 +953,14 @@ class PlanSys(object):
         """
         Return the orbital phase, in the transit definition
         """
-        phase_0 = 2.0 * n.pi * (t - orbital_parameters.T0) / orbital_parameters.P % 1
+        phase_0 = 2.0 * np.pi * (t - orbital_parameters.T0) / orbital_parameters.P % 1
         return phase_0
 
     def get_phase_periastron(self, t, orbital_parameters):
         """
         Return the orbital phase, in the periastron passage definition.
         """
-        phase_p = 2.0 * n.pi * (t - orbital_parameters.Tp) / orbital_parameters.P % 1
+        phase_p = 2.0 * np.pi * (t - orbital_parameters.Tp) / orbital_parameters.P % 1
         return phase_p
 
     def get_true_lat(self, t, orbital_parameters, isphase=False):
@@ -971,7 +971,7 @@ class PlanSys(object):
 
         if isphase:
             # Convert transit phase to periastron phase
-            Mc = orbital_parameters.get_E0() - ecc * n.sin(orbital_parameters.get_E0())
+            Mc = orbital_parameters.get_E0() - ecc * np.sin(orbital_parameters.get_E0())
             M = 2.0 * pi * t - Mc
         else:
             M = self.get_phase_periastron(t, orbital_parameters)
@@ -983,7 +983,7 @@ class PlanSys(object):
         Return the Radial Velocity curve of Star in km/s
         """
         rv = (
-            n.zeros(len(t), float)
+            np.zeros(len(t), float)
             + self.star.v0
             + (
                 self.star.drift1 * (t - TrefRV)
@@ -1000,14 +1000,14 @@ class PlanSys(object):
 
             if isphase:
                 # Convert transit phase to periastron phase
-                Mc = orbit.get_E0() - orbit.ecc * n.sin(orbit.get_E0())
+                Mc = orbit.get_E0() - orbit.ecc * np.sin(orbit.get_E0())
                 M = 2 * pi * t - Mc
             else:
                 M = self.get_phase_periastron(t, orbit)
 
             nu = tools.trueanomaly(M, orbit.ecc)
             # Add RV of current planet
-            rv += pl.K1 * (n.cos(nu + orbit.omega) + orbit.ecc * n.cos(orbit.omega))
+            rv += pl.K1 * (np.cos(nu + orbit.omega) + orbit.ecc * np.cos(orbit.omega))
         return rv
 
     def get_sbr(self, planet, photband):
@@ -1024,7 +1024,7 @@ class PlanSys(object):
             ldc1 = self.star.get_LD(photband)
             ldc2 = planet.get_LD(photband)
 
-            return n.double(
+            return np.double(
                 (ll2 / ll1)
                 * ((self.star.R / (planet.Rp * Rjup2Rsun)) ** 2.0)
                 * (1.0 - ldc1[0] / 3.0 - ldc1[1] / 6.0)
@@ -1068,7 +1068,7 @@ class PlanSys(object):
         # Prepare to run EBOP
 
         # Fix quadratic limbdarkening and get coefficients
-        ldtype = n.empty((2,), dtype="i")
+        ldtype = np.empty((2,), dtype="i")
         ldtype[0] = int(4)  # quad LD law type for star A
         ldtype[1] = int(4)  # quad LD law type for star B
 
@@ -1076,7 +1076,7 @@ class PlanSys(object):
         for planet in self.planets:
 
             # Prepare input parameters array
-            v = n.zeros(67, "d")
+            v = np.zeros(67, "d")
 
             # Prepare phase or time array
             if not isphase:
@@ -1089,7 +1089,7 @@ class PlanSys(object):
 
             # Prepare output array
             nph = int(len(ph))
-            y = n.zeros(ph.shape, "d")
+            y = np.zeros(ph.shape, "d")
 
             # Useful orbital parameters
             incl = planet.orbital_parameters.incl
@@ -1121,27 +1121,27 @@ class PlanSys(object):
             r1 = 1 / planet.ar
             r2 = r1 * planet.kr
 
-            v[18 - 1] = n.double(1.0)  # Integ. ring size (deg)
-            v[2 - 1] = n.double(r1 + r2)  # Sum of radii (normalised to sma)
-            v[3 - 1] = n.double(planet.kr)  # Ratio of the radii
-            v[6 - 1] = n.double(incl * 180.0 / pi)  # Orbital inclination (deg)
-            v[13 - 1] = n.double(planet.q)  # Mass ratio of system
-            v[7 - 1] = n.double(ecc * n.cos(omega))  # e # e cos(omega) OR ecentricity
-            v[8 - 1] = n.double(ecc * n.sin(omega))  # omega  #e sin(omega) OR omega
-            v[9 - 1] = n.double(gd1)  # Gravity darkening (star A)
-            v[10 - 1] = n.double(gd2)  # Grav darkening (star B)
-            v[1 - 1] = n.double(sbr)  # Surface brightness ratio
-            v[15 - 1] = n.double(0.0)  # Amount of third light
-            v[4 - 1] = n.double(ldc1[0])  # LD star A (linear coeff)
-            v[5 - 1] = n.double(ldc2[0])  # LD star B (linear coeff)
-            v[21 - 1] = n.double(ldc1[1])  # LD star A (nonlin coeff)
-            v[22 - 1] = n.double(ldc2[1])  # LD star B (nonlin coeff)
+            v[18 - 1] = np.double(1.0)  # Integ. ring size (deg)
+            v[2 - 1] = np.double(r1 + r2)  # Sum of radii (normalised to sma)
+            v[3 - 1] = np.double(planet.kr)  # Ratio of the radii
+            v[6 - 1] = np.double(incl * 180.0 / pi)  # Orbital inclination (deg)
+            v[13 - 1] = np.double(planet.q)  # Mass ratio of system
+            v[7 - 1] = np.double(ecc * np.cos(omega))  # e # e cos(omega) OR ecentricity
+            v[8 - 1] = np.double(ecc * np.sin(omega))  # omega  #e sin(omega) OR omega
+            v[9 - 1] = np.double(gd1)  # Gravity darkening (star A)
+            v[10 - 1] = np.double(gd2)  # Grav darkening (star B)
+            v[1 - 1] = np.double(sbr)  # Surface brightness ratio
+            v[15 - 1] = np.double(0.0)  # Amount of third light
+            v[4 - 1] = np.double(ldc1[0])  # LD star A (linear coeff)
+            v[5 - 1] = np.double(ldc2[0])  # LD star B (linear coeff)
+            v[21 - 1] = np.double(ldc1[1])  # LD star A (nonlin coeff)
+            v[22 - 1] = np.double(ldc2[1])  # LD star B (nonlin coeff)
             # Reflection effect star A
-            v[11 - 1] = n.double(0.5 * albedo1 * ll2 * r1**2.0)
+            v[11 - 1] = np.double(0.5 * albedo1 * ll2 * r1**2.0)
             # Reflection effect star B
-            v[12 - 1] = n.double(0.5 * albedo2 * ll1 * r2**2.0)
-            v[16 - 1] = n.double(0.0)  # Phase shift of primary min
-            v[17 - 1] = n.double(0.0)  # Light scale factor (mag)
+            v[12 - 1] = np.double(0.5 * albedo2 * ll1 * r2**2.0)
+            v[16 - 1] = np.double(0.0)  # Phase shift of primary min
+            v[17 - 1] = np.double(0.0)  # Light scale factor (mag)
 
             y = run_EBOP(v, ldtype, ph, nph, Nmax=Nmax, components=beaming)
 
@@ -1162,7 +1162,7 @@ class PlanSys(object):
 
             LCS.append(y)
 
-        return (1 - n.sum((1 - n.array(LCS)), axis=0)) * (
+        return (1 - np.sum((1 - np.array(LCS)), axis=0)) * (
             self.star.get_spots(t, photband) * (1 - self.f3) + self.f3
         )
         # the flux of the planets are not taken into account
@@ -1204,16 +1204,16 @@ class FitBinary(object):
         # Compute inclination in case a/Rs is an additional free parameter.
         if self.orbital_parameters.bprime is not None and self.ar is not None:
             cosi = self.orbital_parameters.bprime / self.ar
-            incl = n.arccos(cosi)
+            incl = np.arccos(cosi)
             self.orbital_parameters.incl = incl
 
         elif self.orbital_parameters.b is not None and self.ar is not None:
             ecc = self.orbital_parameters.ecc
             nu0 = pi / 2.0 - self.orbital_parameters.omega
-            bprime = self.orbital_parameters.b / (1 - ecc**2) * (1 + ecc * n.cos(nu0))
+            bprime = self.orbital_parameters.b / (1 - ecc**2) * (1 + ecc * np.cos(nu0))
             self.orbital_parameters.bprime = bprime
             cosi = bprime / self.ar
-            incl = n.arccos(cosi)
+            incl = np.arccos(cosi)
             self.orbital_parameters.incl = incl
 
         # Compute additional parameters for IsoBinary Class
@@ -1226,7 +1226,7 @@ class FitBinary(object):
                         * (self.mact * Msun)
                         * (self.orbital_parameters.P * 24.0 * 3600.0) ** 2.0
                     )
-                    / (4.0 * (n.pi**2))
+                    / (4.0 * (np.pi**2))
                 )
                 ** (1.0 / 3.0)
             ) / (Rsun)
@@ -1238,14 +1238,14 @@ class FitBinary(object):
             orbit = self.orbital_parameters
 
             self.K1 = (
-                (2.0 * n.pi * G / (orbit.P * 86400)) ** (1.0 / 3.0)
+                (2.0 * np.pi * G / (orbit.P * 86400)) ** (1.0 / 3.0)
                 * (
                     self.star2.mact
                     * Msun
-                    * n.sin(orbit.incl)
+                    * np.sin(orbit.incl)
                     * (self.mact * Msun) ** (-2.0 / 3.0)
                 )
-                * (1 / n.sqrt(1.0 - orbit.ecc**2))
+                * (1 / np.sqrt(1.0 - orbit.ecc**2))
                 * 1e-3
             )
 
@@ -1347,20 +1347,20 @@ class FitBinary(object):
         P = self.orbital_parameters.P
         T0 = self.orbital_parameters.T0
         phase_0 = ((t - T0) / P) % 1
-        return 2.0 * n.pi * phase_0
+        return 2.0 * np.pi * phase_0
 
     def get_phase_periastron(self, t):
         """
         Return the orbital phase, in the periastron passage definition.
         """
 
-        t = n.atleast_1d(t)
+        t = np.atleast_1d(t)
         # FUTURE: compute for series of parameters t = n.atleast_2d(t)
 
         P = self.orbital_parameters.P
         Tp = self.orbital_parameters.Tp
         phase_p = (t - Tp) / P % 1
-        return 2.0 * n.pi * phase_p
+        return 2.0 * np.pi * phase_p
 
     def get_true_lat(self, t, isphase=False):
         # P = self.orbital_parameters.P
@@ -1370,7 +1370,7 @@ class FitBinary(object):
 
         if isphase:
             # Convert transit phase to periastron phase
-            Mc = self.orbital_parameters.get_E0() - ecc * n.sin(
+            Mc = self.orbital_parameters.get_E0() - ecc * np.sin(
                 self.orbital_parameters.get_E0()
             )
             M = 2.0 * pi * t - Mc
@@ -1381,7 +1381,7 @@ class FitBinary(object):
 
     def get_RV(self, t, isphase=False, component="primary", istransit=True):
 
-        t = n.atleast_1d(t)
+        t = np.atleast_1d(t)
         # FUTURE: perform computation for list of params
         # t = n.atleast_1d(t)[:, n.newaxis]
 
@@ -1391,7 +1391,7 @@ class FitBinary(object):
 
         if isphase and istransit:
             # Convert transit phase to periastron phase
-            Mc = self.orbital_parameters.get_E0() - ecc * n.sin(
+            Mc = self.orbital_parameters.get_E0() - ecc * np.sin(
                 self.orbital_parameters.get_E0()
             )
             M = 2.0 * pi * t - Mc
@@ -1411,7 +1411,7 @@ class FitBinary(object):
         if not isphase:
             rv = (
                 self.v0
-                + K * (n.cos(nu + omega) + ecc * n.cos(omega))
+                + K * (np.cos(nu + omega) + ecc * np.cos(omega))
                 + (
                     self.drift1 * (t - TrefRV)
                     + self.drift2 * (t - TrefRV) ** 2
@@ -1422,7 +1422,7 @@ class FitBinary(object):
         else:
             rv = (
                 self.v0
-                + K * (n.cos(nu) + ecc * n.cos(omega))
+                + K * (np.cos(nu) + ecc * np.cos(omega))
                 + (
                     self.drift1 * (t - TrefRV)
                     + self.drift2 * (t - TrefRV) ** 2
@@ -1447,7 +1447,7 @@ class FitBinary(object):
             isinstance(ub, float) or isinstance(ub, int)
         ):
             # Return same coefficients independetly of photband demanded
-            return n.array([ua, ub])
+            return np.array([ua, ub])
 
         elif isinstance(ua, dict) and isinstance(ub, dict):
             try:
@@ -1456,7 +1456,7 @@ class FitBinary(object):
                 if (isinstance(uai, float) or isinstance(uai, int)) and (
                     isinstance(ubi, float) or isinstance(ubi, int)
                 ):
-                    return n.array([uai, ubi])
+                    return np.array([uai, ubi])
                 else:
                     raise TypeError("Invalid limbdarkening for photband %s" % photband)
 
@@ -1594,9 +1594,9 @@ class FitBinary(object):
 
         if spotmodel == "Macula" and self.__getattribute__(comp + "Nspots") != 0:
 
-            star = n.array(
+            star = np.array(
                 [
-                    (self.__getattribute__(comp + "rotangle")) * n.pi / 180.0,
+                    (self.__getattribute__(comp + "rotangle")) * np.pi / 180.0,
                     self.__getattribute__(comp + "period"),
                     self.__getattribute__(comp + "kappa2"),
                     self.__getattribute__(comp + "kappa4"),
@@ -1610,8 +1610,8 @@ class FitBinary(object):
                     self.__getattribute__(comp + "d4"),
                 ]
             )
-            inst = n.array([[1.0], [1.0]])
-            spot = n.array([n.zeros(self.__getattribute__(comp + "Nspots"))] * 8)
+            inst = np.array([[1.0], [1.0]])
+            spot = np.array([np.zeros(self.__getattribute__(comp + "Nspots"))] * 8)
             for i in range(self.__getattribute__(comp + "Nspots")):
                 for j, spotparam in enumerate(
                     [
@@ -1634,13 +1634,13 @@ class FitBinary(object):
                         or spotparam == "alphamax"
                     ):
                         # longitude, latitude and spot size in radians
-                        spot[j][i] = spot[j][i] * n.pi / 180.0
+                        spot[j][i] = spot[j][i] * np.pi / 180.0
 
             lcspots = macula(t, star, spot, inst)
             return lcspots
 
         else:
-            return n.ones(len(t))
+            return np.ones(len(t))
 
     def get_LC(self, t, photband="Kepler", isphase=False, dt0=0.0):
         # FitBinary
@@ -1665,16 +1665,16 @@ class FitBinary(object):
         ###
 
         # Prepare input parameters array
-        v = n.zeros(67, "d")
+        v = np.zeros(67, "d")
 
         # Fix quadratic limbdarkening and get coefficients
-        ldtype = n.empty((2,), dtype="i")
+        ldtype = np.empty((2,), dtype="i")
         ldtype[0] = int(4)  # quad LD law type for star A
         ldtype[1] = int(4)  # quad LD law type for star B
 
         # Prepare output array
         nph = int(len(ph))
-        y = n.zeros(ph.shape, "d")
+        y = np.zeros(ph.shape, "d")
 
         # Get wavelength dependent parameters for primary and secondary star
         ldc1 = self.get_LD(photband, "primary")
@@ -1704,27 +1704,27 @@ class FitBinary(object):
         r1 = self.sumr / (1 + self.kr)
         r2 = r1 * self.kr
 
-        v[1 - 1] = n.double(sbr)  # Surface brightness ratio
-        v[2 - 1] = n.double(self.sumr)  # Sum of the radii (normalised to sma)
-        v[3 - 1] = n.double(self.kr)  # Ratio of the radii
-        v[4 - 1] = n.double(ldc1[0])  # LD star A (linear coeff)
-        v[5 - 1] = n.double(ldc2[0])  # LD star B (linear coeff)
-        v[6 - 1] = n.double(incl * 180.0 / pi)  # Orbital inclination (deg)
-        v[7 - 1] = n.double(ecc * n.cos(omega))  # e OR ecos(omega)
-        v[8 - 1] = n.double(ecc * n.sin(omega))  # omega OR e sin(omega)
-        v[9 - 1] = n.double(gd1)  # Gravity darkening (star A)
-        v[10 - 1] = n.double(gd2)  # Grav darkening (star B)
+        v[1 - 1] = np.double(sbr)  # Surface brightness ratio
+        v[2 - 1] = np.double(self.sumr)  # Sum of the radii (normalised to sma)
+        v[3 - 1] = np.double(self.kr)  # Ratio of the radii
+        v[4 - 1] = np.double(ldc1[0])  # LD star A (linear coeff)
+        v[5 - 1] = np.double(ldc2[0])  # LD star B (linear coeff)
+        v[6 - 1] = np.double(incl * 180.0 / pi)  # Orbital inclination (deg)
+        v[7 - 1] = np.double(ecc * np.cos(omega))  # e OR ecos(omega)
+        v[8 - 1] = np.double(ecc * np.sin(omega))  # omega OR e sin(omega)
+        v[9 - 1] = np.double(gd1)  # Gravity darkening (star A)
+        v[10 - 1] = np.double(gd2)  # Grav darkening (star B)
         # Reflection effect star A
-        v[11 - 1] = n.double(0.5 * albedo1 * ll2 * r1**2.0)
+        v[11 - 1] = np.double(0.5 * albedo1 * ll2 * r1**2.0)
         # Reflection effect star B
-        v[12 - 1] = n.double(0.5 * albedo2 * ll1 * r2**2.0)
-        v[13 - 1] = n.double(self.q)  # Mass ratio of system
-        v[15 - 1] = n.double(0.0)  # Amount of third light
-        v[16 - 1] = n.double(0.0)  # Phase shift of primary min
-        v[17 - 1] = n.double(0.0)  # Light scale factor (mag)
-        v[18 - 1] = n.double(1.0)  # Integ. ring size (deg)
-        v[21 - 1] = n.double(ldc1[1])  # LD star A (nonlin coeff)
-        v[22 - 1] = n.double(ldc2[1])  # LD star B (nonlin coeff)
+        v[12 - 1] = np.double(0.5 * albedo2 * ll1 * r2**2.0)
+        v[13 - 1] = np.double(self.q)  # Mass ratio of system
+        v[15 - 1] = np.double(0.0)  # Amount of third light
+        v[16 - 1] = np.double(0.0)  # Phase shift of primary min
+        v[17 - 1] = np.double(0.0)  # Light scale factor (mag)
+        v[18 - 1] = np.double(1.0)  # Integ. ring size (deg)
+        v[21 - 1] = np.double(ldc1[1])  # LD star A (nonlin coeff)
+        v[22 - 1] = np.double(ldc2[1])  # LD star B (nonlin coeff)
 
         # get light curve
         y = run_EBOP(v, ldtype, ph, nph, Nmax=Nmax, components=True)
@@ -1854,7 +1854,7 @@ class IsoBinary(FitBinary):
         ldc1 = self.star1.get_LD(photband)
         ldc2 = self.star2.get_LD(photband)
 
-        return n.double(
+        return np.double(
             ll2
             / ll1
             * (self.star1.R / self.star2.R) ** 2.0
@@ -2010,7 +2010,7 @@ class orbital_parameters(object):
                 )
 
             self.ecc = self.secos**2 + self.sesin**2
-            self.omega = n.arctan2(self.sesin, self.secos)
+            self.omega = np.arctan2(self.sesin, self.secos)
 
         # Convert ecos(omega) and esin(omega) to ecc and omega
         if self.ecos is not None and self.esin is not None:
@@ -2023,12 +2023,12 @@ class orbital_parameters(object):
                     "Lagrangean elements."
                 )
 
-            self.ecc = n.sqrt(self.ecos**2 + self.esin**2)
-            self.omega = n.arctan2(self.esin, self.ecos)
+            self.ecc = np.sqrt(self.ecos**2 + self.esin**2)
+            self.omega = np.arctan2(self.esin, self.ecos)
 
         # If ecc > 1, return error
         # if self.ecc >= 1:
-        if n.any(self.ecc >= 1):
+        if np.any(self.ecc >= 1):
             raise ValueError("Eccentricity larger than 1.")
 
         # Compute T0 from Tp and viceversa; compute M0, L0 and epoch
@@ -2099,7 +2099,7 @@ class orbital_parameters(object):
         Return the epoch of periastron from other orbital parameters
         """
         E_0 = self.get_E0()
-        Tp = self.T0 - self.P / (2.0 * n.pi) * (E_0 - self.ecc * n.sin(E_0))
+        Tp = self.T0 - self.P / (2.0 * np.pi) * (E_0 - self.ecc * np.sin(E_0))
         return Tp
 
     def get_T0(self):
@@ -2107,12 +2107,12 @@ class orbital_parameters(object):
         Return the transit epoch from other orbital parameters
         """
         E_0 = self.get_E0()
-        T0 = self.Tp + self.P / (2.0 * n.pi) * (E_0 - self.ecc * n.sin(E_0))
+        T0 = self.Tp + self.P / (2.0 * np.pi) * (E_0 - self.ecc * np.sin(E_0))
         return T0
 
     def get_E0(self):
-        return n.arctan2(
-            n.sqrt(1.0 - self.ecc**2) * n.cos(self.omega), n.sin(self.omega) + self.ecc
+        return np.arctan2(
+            np.sqrt(1.0 - self.ecc**2) * np.cos(self.omega), np.sin(self.omega) + self.ecc
         )
 
 
@@ -2129,7 +2129,7 @@ class Drift(object):
 
     def get_RV(self, t):
 
-        t = n.atleast_1d(t)
+        t = np.atleast_1d(t)
         # FUTURE: perform computation for list of params
         # t = n.atleast_1d(t)[:, n.newaxis]
 
