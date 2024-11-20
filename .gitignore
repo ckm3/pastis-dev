@@ -1,6 +1,8 @@
 /simulations
 /notebooks
-pastis/pastis.egg-info/
-pastis/pastis/__pycache__/
+pastis-core/pastis.egg-info/
+pastis-core/pastis/__pycache__/
 .vscode/
 *.pyc
+pastis-core/pastislib.tgz
+pastis-core/pastis/lib
