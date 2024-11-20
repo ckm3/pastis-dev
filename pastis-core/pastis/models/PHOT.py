@@ -16,8 +16,8 @@ from .. import photometry as phot
 
 # if sys.version_info > (3, 0):
 # Python3
-# import task2_components3 as task2
-import jktebop as task2
+import task2_components3 as task2
+# import jktebop as task2
 
 # else:
 # import task2_components as task2
@@ -34,7 +34,9 @@ def PASTIS_PHOT(t, photband, isphase, cont, foot, dt0, *args):
     for obj in args:
         if isinstance(obj, ac.Star):
             # Get flux from star
-            flux = phot.get_flux(obj.get_spectrum(), photband)
+            # flux = phot.get_flux(obj.get_spectrum(), photband)
+            mag = obj.star.Tmag
+            flux = 10 ** (-0.4 * mag)
             lc_ = obj.get_spots(t, photband)
 
             fluxes.append(flux)
@@ -53,8 +55,9 @@ def PASTIS_PHOT(t, photband, isphase, cont, foot, dt0, *args):
 
         elif isinstance(obj, ac.PlanSys):
             # Get flux from star
-            flux = phot.get_flux(obj.star.get_spectrum(), photband)
-
+            # flux = phot.get_flux(obj.star.get_spectrum(), photband)
+            mag = obj.star.Tmag
+            flux = 10 ** (-0.4 * mag)
             # Get lightcurve from planetary system
             lc_ = obj.get_LC(t, photband, isphase, dt0)
 
@@ -228,7 +231,7 @@ def run_EBOP(v, ldtype, x, Nx, Nmax=None, components=False):
             Nmax_allph = 1e4
 
         # correct for phase coverage
-        Nmax = np.int(Nmax_allph * phcov)
+        Nmax = np.int64(Nmax_allph * phcov)
 
     # IF the number of points in the light curve is larger than Nmax, only
     # compute model at Nmax points.

@@ -331,14 +331,6 @@ def get_stellarparams(z, logage, minit, method="linear"):
 
     return vals
 
-from isochrones.mist import MISTEvolutionTrackGrid
-grid_tracks = MISTEvolutionTrackGrid()
-
-def get_stellarparams_target_isochrones(z, y, logT, planethost=False):
-    eep = mist.get_eep(1.01, 9.76, 0.03, accurate=True)
-    mist.interp_value([eep, 9.76, 0.03], ['Teff', 'logg', 'radius', 'density'])
-
-
 
 def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
     """

@@ -12,20 +12,28 @@ import os
 from .paths import ldpath, setpath, priorspath
 
 # Dictionaries
-LDdict = {'Claret2011': os.path.join(ldpath, 'claret2011ab.txt'),
-          'Claret2011_wTESS': os.path.join(ldpath, 'claret2011abTESS.txt')}
+LDdict = {
+    "Claret2011": os.path.join(ldpath, "claret2011ab.txt"),
+    "Claret2011_wTESS": os.path.join(ldpath, "claret2011abTESS.txt"),
+}
 
-EMdict = {'Dartmouth': os.path.join(setpath, 'Dartmouth.trk'),
-          'Geneva': os.path.join(setpath, 'Geneva.trk'),
-          'StarEvol': os.path.join(setpath, 'Starevol.trk'),
-          'Parsec': os.path.join(setpath, 'Parsec.trk')}
+EMdict = {
+    "Dartmouth": os.path.join(setpath, "Dartmouth.trk"),
+    "Geneva": os.path.join(setpath, "Geneva.trk"),
+    "StarEvol": os.path.join(setpath, "Starevol.trk"),
+    "Parsec": os.path.join(setpath, "Parsec.trk"),
+}
 
-SAMdict = {'CastelliKurucz': 'CK', 'BT-settl': 'BT'}
+SAMdict = {"CastelliKurucz": "CK", "BT-settl": "BT"}
 
-PRIORdict = {'Mayor': [os.path.join(priorspath, 'PDF_SmallPlanets_Mayor.dat'),
-                       os.path.join(priorspath, 'CDF_GiantPlanets_Mayor.dat')],
-             'Fressin': [os.path.join(priorspath,
-                                      'Fressin_cumulative_occurrence.txt'),
-                         os.path.join(priorspath,
-                                      'Fressin_period_bin_edges.txt')]}
+PRIORdict = {
+    "Mayor": [
+        os.path.join(priorspath, "PDF_SmallPlanets_Mayor.dat"),
+        os.path.join(priorspath, "CDF_GiantPlanets_Mayor.dat"),
+    ],
+    "Fressin": [
+        os.path.join(priorspath, "Fressin_cumulative_occurrence.txt"),
+        os.path.join(priorspath, "Fressin_period_bin_edges.txt"),
+    ],
+}
 # GIEdict = {'AmoresLepine2005': ''}

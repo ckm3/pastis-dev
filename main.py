@@ -15,17 +15,17 @@ from pastis.extlib import SAMdict, EMdict
 from pastis.paths import filterpath, zeromagfile
 
 # Initialise if needed
-# if not hasattr(limbdarkening, "LDCs"):
-#     limbdarkening.initialize_limbdarkening(["Johnson-R", "TESS"])
+if not hasattr(limbdarkening, "LDCs"):
+    limbdarkening.initialize_limbdarkening(["Johnson-R", "TESS"])
 
 # if not hasattr(photometry, "Filters"):
 #     photometry.initialize_phot(
 #         ["Johnson-R", "TESS"], zeromagfile, filterpath, AMmodel=SAMdict["BT-settl"]
 #     )
 #     # photometry.initialize_phot_WD()
-if not hasattr(isochrones, "maxz"):
-    isochrones.interpol_tracks(EMdict["Dartmouth"])
-    isochrones.prepare_tracks_target(EMdict["Dartmouth"])
+# if not hasattr(isochrones, "maxz"):
+#     isochrones.interpol_tracks(EMdict["Dartmouth"])
+#     isochrones.prepare_tracks_target(EMdict["Dartmouth"])
 
 # import core as c
 
@@ -40,7 +40,7 @@ import simulation as s
 
 # Read parameters
 from parameters import SCENARIO, NSIMU_PER_TIC_STAR, THETAMIN_DEG
-
+import astropy.units as u
 # import SCENARIO, NSIMU_PER_TIC_STAR
 
 # to force garbage collection
@@ -198,36 +198,36 @@ print("Reading input files")
 filenames = [
     # "tic_dec66_00S__64_00S_",
     # "tic_dec58_00S__56_00S_",
-    "tic_dec30_00S__28_00S_",
+    # "tic_dec30_00S__28_00S_",
     # "tic_dec74_00S__72_00S_",
     # "tic_dec62_00S__60_00S_",
     # "tic_dec28_00S__26_00S_",
     # "tic_dec88_00S__86_00S_",
+    "spoc_test_selected.csv"
 ]
 
-filenames = filenames * 5  # quick and dirty way to repeat stars, I love it
+# filenames = filenames * 5  # quick and dirty way to repeat stars, I love it
 
-full_data = []
+# full_data = []
 full_data_PD = pd.DataFrame([])
 
 for file in filenames:
-    TEFF_LOGG_MH_data_file = file + "ID_TEFF_LOGG_MH.csv"
-    MH_data_file = file + "ID_MH.csv"
+    # TEFF_LOGG_MH_data_file = file + "ID_TEFF_LOGG_MH.csv"
+    # MH_data_file = file + "ID_MH.csv"
 
-    print("Reading:", TEFF_LOGG_MH_data_file)
+    print("Reading:", file)
 
     # read files
-    data_pd = pd.read_csv(TEFF_LOGG_MH_data_file)
+    data_pd = pd.read_csv(file)
     # we need the pandas
-    data = data_pd[["Teff", "logg", "MH"]]
+    data_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "[M/H]", "B"]].copy()
+    # MH_data_pd = pd.read_csv(MH_data_file)
+    # MH_data = MH_data_pd["MH"].values
 
-    MH_data_pd = pd.read_csv(MH_data_file)
-    MH_data = MH_data_pd["MH"].values
-
-    kde = gaussian_kde(MH_data, bw_method="scott")
-    new_MH = kde.resample(len(data), seed=1)[0]
-    data.loc[:, "MH"] = new_MH
-    data = data.values.tolist()
+    # kde = gaussian_kde(MH_data, bw_method="scott")
+    # new_MH = kde.resample(len(data), seed=1)[0]
+    # data.loc[:, "MH"] = new_MH
+    # data = data.values.tolist()
 
     # there must be a more numpy way to do this
     # filling the MH data
@@ -235,20 +235,21 @@ for file in filenames:
     #     if np.isnan(star[2]):
     #         star[2] = np.random.choice(MH_data)
 
-    full_data = full_data + data
+    # full_data = full_data + data
     full_data_PD = pd.concat([full_data_PD, data_pd])
 
 # Just to split into batchs
 start = 0
-full_data = np.asarray(full_data)
-for part, end in enumerate(np.linspace(20000, len(full_data), 16, dtype=int)):
+# full_data = np.asarray(full_data)
+for part, end in enumerate(np.linspace(20000, len(full_data_PD), 16, dtype=int)):
     if part >= 0:  # to avoid restart in case of failure
         print(start, end, "Part:", part)
-        TEFF_LOGG_MH_slice = full_data[start:end]
+        # TEFF_LOGG_MH_slice = full_data[start:end]
         # to use the same format as before
-        params = TEFF_LOGG_MH_slice.flatten().reshape(
-            3, len(TEFF_LOGG_MH_slice), order="F"
-        )
+        # params = TEFF_LOGG_MH_slice.flatten().reshape(
+            # 3, len(TEFF_LOGG_MH_slice), order="F"
+        # )
+        params = full_data_PD.iloc[start:end].values.T
         gen_files(params, part, full_data_PD, method="uniform")
     start = end
     # Not sure if this works or not, just in case

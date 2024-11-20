@@ -72,6 +72,7 @@ class Star(object):
         self.R = kwargs.pop("R", None)
 
         # Other parameters
+        self.Tmag = kwargs.pop("Tmag", None)
         self.dist = kwargs.pop("dist", 0.001)
         self.vsini = kwargs.pop("vsini", 10.0)
         self.v0 = kwargs.pop("v0", 0.0)
@@ -144,7 +145,7 @@ class Star(object):
         self._parent = None
 
         # Check that critical parameter z was provided
-        self.test_critical(["z"], ["Metallicity"])
+        # self.test_critical(["z"], ["Metallicity"])
 
     def test_critical(self, attrs, names):
 
@@ -389,9 +390,9 @@ class Target(Star):
     def __init__(self, **kwargs):
         Star.__init__(self, **kwargs)
 
-        self.test_critical(
-            ["teff", "logg"], ["Effective temperature", "Surface gravity"]
-        )
+        # self.test_critical(
+        #     ["teff", "logg"], ["Effective temperature", "Surface gravity"]
+        # )
 
         # Get parameters from tracks
         self.get_stellarparameters()
@@ -399,18 +400,19 @@ class Target(Star):
     def get_stellarparameters(self, output=False):
         """Get parameters from evolution models."""
         # Get Target Star parameters from evolution tracks
-        mact, logL, logage = iso.get_stellarparams_target(
-            self.z, self.logg, np.log10(self.teff)
-        )
-        self.L = 10**logL
-        self.logage = logage
-        self.mact = mact
+        # mact, logL, logage = iso.get_stellarparams_target(
+        #     self.z, self.logg, np.log10(self.teff)
+        # )
+
+        # self.L = 10**logL
+        # self.logage = logage
+        # self.mact = mact
 
         # Compute radius
-        self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
+        # self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
 
         if output:
-            return mact, self.R, self.L, logage
+            return self.mact, self.R
 
 
 class Blend(Star):
@@ -878,7 +880,7 @@ class PlanSys(object):
                     mact = mact + planet.q * self.star.mact
 
             if not isinstance(star, PlanetHost):
-                star.dens = star.mact / star.R**3.0
+                star.dens = 3 * (star.mact*Msun) / (star.R*Rsun)**3.0 / 4 / pi
 
             # Impose stellar density
             # Compute a/R* for this planet based on stellar density,
@@ -1013,6 +1015,7 @@ class PlanSys(object):
     def get_sbr(self, planet, photband):
 
         if isinstance(planet, Planet):
+            return 0.0
             sp1 = self.star.get_spectrum()
             sp2 = planet.get_spectrum()
 

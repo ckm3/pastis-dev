@@ -133,13 +133,17 @@ class TargetStarParameters(StarParameters):
         # =============================================================================
 
         self.parnames = {
+            "Radius": ["radius", "Solar radius", "R"],
+            "Tmag": ["Tmag", "", "Tmag"],
+            "Av": ["Av", "", "Av"],
+            "Mass": ["mass", "Solar mass", "mact"],
             "Effective Temperature": ["teff", "K", "teff"],
             "Surface gravity": ["logg", "cgs [log]", "logg"],
             "Metallicity": ["feh", "", "z"],
             "Distance": ["distance", "pc", "dist"],
             "Albedo": ["albedo", "", "albedo"],
             "Redenning": ["ebmv", "", "ebmv"],
-            "Gravity Darkening": ["B", "", "B"],
+            "Doppler beaming factors": ["B", "", "B"],
         }
 
         self.drawn = 0
@@ -149,16 +153,22 @@ class TargetStarParameters(StarParameters):
     @property
     def params(self):
         """Property to return TIC parameters."""
-        return dict([["Teff", self.teff], ["logg", self.logg], ["Fe/H", self.feh]])
+        # return dict([["Teff", self.teff], ["logg", self.logg], ["Fe/H", self.feh]])
+        return dict([["Radius", self.radius], ["Tmag", self.Tmag], ["Av", self.Av], ["Mass", self.mass], ["Teff", self.teff], ["logg", self.logg], ["Fe/H", self.feh], ["B", self.B]])
 
     @params.setter
     def params(self, params):
         """Property to set TIC parameters."""
-        self.teff = params[0]
-        self.logg = params[1]
-        self.feh = params[2]
+        self.radius = params[0]
+        self.Tmag = params[1]
+        self.Av = params[2]
+        self.mass = params[3]
+        self.teff = params[4]
+        self.logg = params[5]
+        self.feh = params[6]
+        self.B = params[7]
         try:
-            self.distance = params[3]
+            self.distance = params[8]
         except IndexError:
             self.distance = params[0] * 0.0 + 10.0
 
@@ -173,7 +183,7 @@ class TargetStarParameters(StarParameters):
         self.draw_albedo()
         # self.draw_ldc()
         self.draw_redenning()
-        self.draw_gravitydarkenning()
+        # self.draw_gravitydarkenning()
 
         self.drawn = 1
         return
