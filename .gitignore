@@ -5,4 +5,5 @@ pastis-core/pastis/__pycache__/
 .vscode/
 *.pyc
 pastis-core/pastislib.tgz
+pastis-core/pastis-lib.tar
 pastis-core/pastis/lib

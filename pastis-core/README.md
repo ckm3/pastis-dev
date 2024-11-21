@@ -1,20 +1,11 @@
-# Installation
-
-### Environment variables
-``PASTIS`` requires two environment variables to be set:
-
-- PASTISPATH
-
-- PASTISLIB
-
 ### External models
 External models are used for the stellar atmospheres, evolution tracks, limb darkening parameters, and interstellar extinction. Besides, a library of photmetric filters are necessary to run PASTIS. All these files are provided as part of the repository in the external_models folder.
 
-**Update** The zipped external models can be found in this [Google Drive](https://drive.google.com/file/d/1oWDlJ45MMGxpTGAqsNxvdBGtnZnjOHiq/view?usp=sharing).
+**Update** The zipped external models can be found in this https://storage.cuikaiming.com/share/pastis-lib.tar.
 
 To unpack the library, use ``tar``
 ```
-tar -xzvf pastislib.tgz
+tar -xvf pastis-lib.gz
 ```
 
 They have to be placed in the location specified by $PASTISLIB.
