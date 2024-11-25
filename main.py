@@ -7,12 +7,12 @@ Created on Fri May  7 17:28:29 2021
 """
 import numpy as np
 import pandas as pd
-from scipy.stats import gaussian_kde
+# from scipy.stats import gaussian_kde
 
 # Import relevant modules from PASTIS
 from pastis import isochrones, limbdarkening, photometry
-from pastis.extlib import SAMdict, EMdict
-from pastis.paths import filterpath, zeromagfile
+# from pastis.extlib import SAMdict, EMdict
+# from pastis.paths import filterpath, zeromagfile
 
 # Initialise if needed
 if not hasattr(limbdarkening, "LDCs"):
@@ -31,7 +31,7 @@ if not hasattr(limbdarkening, "LDCs"):
 
 # from pastisML_tess import draw as d
 import draw as d
-import parameters as p
+# import parameters as p
 
 # Because pastis is crap, we can only import this after initialisation
 # from pastisML_tess import simulation as s
@@ -40,7 +40,7 @@ import simulation as s
 
 # Read parameters
 from parameters import SCENARIO, NSIMU_PER_TIC_STAR, THETAMIN_DEG
-import astropy.units as u
+# import astropy.units as u
 # import SCENARIO, NSIMU_PER_TIC_STAR
 
 # to force garbage collection
@@ -55,7 +55,7 @@ def gen_files(params, part_num, pd_tess, **kwargs):
     )
 
     # Create objects
-    object_list, rej = s.build_objects(input_dict, np.sum(flag), True)
+    object_list, rej = s.build_objects(input_dict, np.sum(flag), True, verbose=True)
 
     # Compute model light curves
     lc = s.lightcurves(object_list, scenario=SCENARIO, lc_cadence_min=2.0)
@@ -203,12 +203,12 @@ filenames = [
     # "tic_dec62_00S__60_00S_",
     # "tic_dec28_00S__26_00S_",
     # "tic_dec88_00S__86_00S_",
-    "spoc_test_selected.csv"
+    "filled_spoc_gaia.csv_3-10k.csv"
 ]
 
 # filenames = filenames * 5  # quick and dirty way to repeat stars, I love it
 
-# full_data = []
+full_data = pd.DataFrame([])
 full_data_PD = pd.DataFrame([])
 
 for file in filenames:
@@ -218,9 +218,9 @@ for file in filenames:
     print("Reading:", file)
 
     # read files
-    data_pd = pd.read_csv(file)
+    data_pd = pd.read_csv(file).iloc[:100]
     # we need the pandas
-    data_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "[M/H]", "B"]].copy()
+    params_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "MH", "ebv", "B", "distance"]].dropna().copy()
     # MH_data_pd = pd.read_csv(MH_data_file)
     # MH_data = MH_data_pd["MH"].values
 
@@ -235,22 +235,25 @@ for file in filenames:
     #     if np.isnan(star[2]):
     #         star[2] = np.random.choice(MH_data)
 
-    # full_data = full_data + data
+    full_data = pd.concat([full_data, params_pd])
     full_data_PD = pd.concat([full_data_PD, data_pd])
 
-# Just to split into batchs
+# Split into batches and process
+batch_size = 20000
 start = 0
-# full_data = np.asarray(full_data)
-for part, end in enumerate(np.linspace(20000, len(full_data_PD), 16, dtype=int)):
-    if part >= 0:  # to avoid restart in case of failure
-        print(start, end, "Part:", part)
-        # TEFF_LOGG_MH_slice = full_data[start:end]
-        # to use the same format as before
-        # params = TEFF_LOGG_MH_slice.flatten().reshape(
-            # 3, len(TEFF_LOGG_MH_slice), order="F"
-        # )
-        params = full_data_PD.iloc[start:end].values.T
-        gen_files(params, part, full_data_PD, method="uniform")
+num_batches = (len(full_data_PD) + batch_size - 1) // batch_size  # Ceiling division
+
+for part in range(num_batches):
+    end = min(start + batch_size, len(full_data_PD))
+    # if part >= 0:  # to avoid restart in case of failure
+    print(start, end, "Part:", part)
+    # TEFF_LOGG_MH_slice = full_data[start:end]
+    # to use the same format as before
+    # params = TEFF_LOGG_MH_slice.flatten().reshape(
+        # 3, len(TEFF_LOGG_MH_slice), order="F"
+    # )
+    params = full_data.iloc[start:end].values.T
+    gen_files(params, part, full_data_PD, method="uniform")
     start = end
     # Not sure if this works or not, just in case
-    gc.collect()
+    # gc.collect()

@@ -12,6 +12,7 @@ import os
 import numpy as np
 import pandas as pd
 import scipy.stats as st
+import h5py
 
 # from pastis import limbdarkening as ld
 from pastis.priors import moduleprior as mp
@@ -154,7 +155,19 @@ class TargetStarParameters(StarParameters):
     def params(self):
         """Property to return TIC parameters."""
         # return dict([["Teff", self.teff], ["logg", self.logg], ["Fe/H", self.feh]])
-        return dict([["Radius", self.radius], ["Tmag", self.Tmag], ["Av", self.Av], ["Mass", self.mass], ["Teff", self.teff], ["logg", self.logg], ["Fe/H", self.feh], ["B", self.B]])
+        return dict(
+            [
+                ["Radius", self.radius],
+                ["Tmag", self.Tmag],
+                ["Av", self.Av],
+                ["Mass", self.mass],
+                ["Teff", self.teff],
+                ["logg", self.logg],
+                ["[M/H]", self.feh],
+                ["E(B-V)", self.ebmv],
+                ["B", self.B],
+            ]
+        )
 
     @params.setter
     def params(self, params):
@@ -166,9 +179,10 @@ class TargetStarParameters(StarParameters):
         self.teff = params[4]
         self.logg = params[5]
         self.feh = params[6]
-        self.B = params[7]
+        self.ebmv = params[7]
+        self.B = params[8]
         try:
-            self.distance = params[8]
+            self.distance = params[9]
         except IndexError:
             self.distance = params[0] * 0.0 + 10.0
 
@@ -182,7 +196,7 @@ class TargetStarParameters(StarParameters):
         """Draw all parameters."""
         self.draw_albedo()
         # self.draw_ldc()
-        self.draw_redenning()
+        # self.draw_redenning()
         # self.draw_gravitydarkenning()
 
         self.drawn = 1
@@ -267,7 +281,7 @@ class PlanetParameters(Parameters):
         minradius=None,
         max_period=pp.MAX_PERIOD,
         method="hsu",
-        table_path=os.path.join(pp.TABLE_DIR, "Hsu", "table2.dat"),
+        table_path=os.path.join(pp.TABLE_DIR, "Hsu", "planets_sample_le16d.h5"),
         rates_column=4,
         interbindist="flat",
         **kwargs
@@ -305,34 +319,33 @@ class PlanetParameters(Parameters):
         )
         self.sampledist = interbindist
 
-        dd = pd.read_csv(table_path, delim_whitespace=True, header=None, index_col=None)
+        # dd = pd.read_csv(table_path, delim_whitespace=True, header=None, index_col=None)
+        with h5py.File(table_path, "r") as f:
+            data = f["dataset"]
+            self.pl_sample = np.array(data)
 
-        self.rates_column = rates_column
+        # self.rates_column = rates_column
 
         # Remove upper limits (always use column 4, because 9 may be NaN)
-        self.occ_rate_table = dd.loc[dd.loc[:, 4] != "<"]
+        # self.occ_rate_table = dd.loc[dd.loc[:, 4] != "<"]
 
         # Get occurrence rate in numpy format to use as weights
-        self.rates_orig = (
-            self.occ_rate_table.loc[:, self.rates_column].to_numpy().astype("float")
-        )
+        # self.rates_orig = (
+        #     self.occ_rate_table.loc[:, self.rates_column].to_numpy().astype("float")
+        # )
 
         if minradius is not None:
-            min_rad_cond = self.occ_rate_table.loc[:, 2] >= minradius
-        else:
-            min_rad_cond = np.full_like(self.occ_rate_table.loc[:, 2], True)
+            self.pl_sample = self.pl_sample[self.pl_sample[:, 1] >= minradius]
 
         if max_period is not None:
-            max_per_cond = self.occ_rate_table.loc[:, 1] <= max_period
-        else:
-            max_per_cond = np.full_like(self.occ_rate_table.loc[:, 1], True)
+            self.pl_sample = self.pl_sample[self.pl_sample[:, 0] <= max_period]
 
         # Filter rates
         # TODO allow filtering inside bin; up to now, only full bins are kept
-        self.rates = np.where(min_rad_cond * max_per_cond, self.rates_orig, 0)
+        # self.rates = np.where(min_rad_cond * max_per_cond, self.rates_orig, 0)
 
-        # Compute weights
-        self.w = self.rates / self.rates.sum()
+        # # Compute weights
+        # self.w = self.rates / self.rates.sum()
 
         # Parameter names
         # Each entry contains name of attribute, units
@@ -384,38 +397,48 @@ class PlanetParameters(Parameters):
         if self.method == "hsu":
 
             # Randomly draw a line with weights self.w
-            i = np.random.choice(len(self.w), size=size, p=self.w)
+            # i = np.random.choice(len(self.w), size=size, p=self.w)
 
-            A = self.occ_rate_table.iloc[i, [0, 1, 2, 3]].to_numpy()
+            # A = self.occ_rate_table.iloc[i, [0, 1, 2, 3]].to_numpy()
 
-            deltap = A[:, 1] - A[:, 0]
-            deltar = A[:, 3] - A[:, 2]
+            # deltap = A[:, 1] - A[:, 0]
+            # deltar = A[:, 3] - A[:, 2]
 
-            pmin = A[:, 0]
-            rmin = A[:, 2]
+            # pmin = A[:, 0]
+            # rmin = A[:, 2]
+
+            p, r = self.pl_sample[
+                np.random.randint(0, self.pl_sample.shape[0], size=size)
+            ].T
 
         elif self.method == "uniform":
 
+            p, r = st.loguniform.rvs(
+                np.round(self.pl_sample.min(axis=0), decimals=1),
+                np.round(self.pl_sample.max(axis=0), decimals=1),
+                size=(size, 2),
+            ).T
+
             # Get all columns not filtered in __init__
-            A = self.occ_rate_table.loc[self.w > 0, [0, 1, 2, 3]].to_numpy()
+        #     A = self.occ_rate_table.loc[self.w > 0, [0, 1, 2, 3]].to_numpy()
 
-            # Range in periods and radii
-            deltap = A[:, 1].max() - A[:, 0].min()
-            deltar = A[:, 3].max() - A[:, 2].min()
+        #     # Range in periods and radii
+        #     deltap = A[:, 1].max() - A[:, 0].min()
+        #     deltar = A[:, 3].max() - A[:, 2].min()
 
-            pmin = A[:, 0].min()
-            rmin = A[:, 2].min()
+        #     pmin = A[:, 0].min()
+        #     rmin = A[:, 2].min()
 
-        # Sample randomly within bin
-        u = np.random.rand(size, 2)
+        # # Sample randomly within bin
+        # u = np.random.rand(size, 2)
 
-        if self.sampledist == "flat":
-            p = u[:, 0] * deltap + pmin
-            r = u[:, 1] * deltar + rmin
+        # if self.sampledist == "flat":
+        #     p = u[:, 0] * deltap + pmin
+        #     r = u[:, 1] * deltar + rmin
 
-        elif self.sampledist == "logflat":
-            # TDOO draw log-flat
-            pass
+        # elif self.sampledist == "logflat":
+        #     # TDOO draw log-flat
+        #     pass
 
         self.period = p
         self.radius_rearth = r
@@ -978,8 +1001,9 @@ class OrbitParameters(Parameters):
 
         # Eccentricity
         if eccentric:
-            ecc_prior = priors.TruncatedUNormalPrior(0.0, 0.3, 0.0, 1.0)
-            self.ecc = ecc_prior.rvs(size)
+            # ecc_prior = priors.TruncatedUNormalPrior(0.0, 0.3, 0.0, 1.0)
+            # self.ecc = ecc_prior.rvs(size)
+            self.ecc = priors.sample_e_from_p(self.period)
             self.omega_rad = np.random.rand(size) * 2 * np.pi
 
         else:

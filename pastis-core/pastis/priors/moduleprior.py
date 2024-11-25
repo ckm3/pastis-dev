@@ -672,16 +672,17 @@ def q_def():
     A number is first drawn to choose which part of the distribution the mass
     ratio will be drawn from and then a
     """
-    rand = sp.rand()
-    if rand < 0.0454:
+    rng = np.random.default_rng(1)
+    rand = rng.random()
+    if rand < 0.0454: # This is actually 5/110
         # Lower end of distribution
-        q = sp.rand() * 0.15
-    elif rand > 0.882:
+        q = rng.random() * 0.15
+    elif rand > 0.882: # This is 1-13/110
         # Upper end of distribution
-        q = (sp.rand() * 0.05) + 0.95
+        q = (rng.random() * 0.05) + 0.95
     else:
         # Middle part of distribution
-        q = (sp.rand() * 0.8) + 0.15
+        q = (rng.random() * 0.8) + 0.15
     return q
 
 

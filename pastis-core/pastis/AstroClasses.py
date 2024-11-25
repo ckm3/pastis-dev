@@ -400,26 +400,27 @@ class Target(Star):
     def get_stellarparameters(self, output=False):
         """Get parameters from evolution models."""
         # Get Target Star parameters from evolution tracks
-        # mact, logL, logage = iso.get_stellarparams_target(
-        #     self.z, self.logg, np.log10(self.teff)
-        # )
+        mact, logL, logage, Tmag = iso.get_stellarparams_target(
+            self.z, self.logg, np.log10(self.teff), self.dist, self.ebmv
+        )
 
-        # self.L = 10**logL
-        # self.logage = logage
-        # self.mact = mact
+        self.L = 10**logL
+        self.logage = logage
+        self.mact = mact
+        self.Tmag = Tmag
 
         # Compute radius
-        # self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
+        self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
 
         if output:
-            return self.mact, self.R
+            return self.mact, self.R, self.L
 
 
 class Blend(Star):
     def __init__(self, **kwargs):
         Star.__init__(self, **kwargs)
 
-        self.test_critical(["minit", "logage"], ["Effective temperature", "Age"])
+        # self.test_critical(["minit", "logage"], ["Effective temperature", "Age"])
 
         # Get parameters from tracks
         self.get_stellarparameters()
@@ -431,18 +432,20 @@ class Blend(Star):
         """
 
         # Get Blend Star parameters from evolution tracks
-        logT, logg, logL, mact = iso.get_stellarparams(self.z, self.logage, self.minit)
+        teff, logg, logL, mact, Tmag = iso.get_stellarparams(self.z, self.logage, self.minit, self.dist, self.ebmv)
 
-        self.teff = 10**logT
+        self.teff = teff
         self.logg = logg
         self.mact = mact
         self.L = 10**logL
+        self.Tmag = Tmag
+        # self.L = self.R**2 * (1 - self.alphaS) * (self.teff / 5777.0) ** 4.0
 
         # Compute radius
         self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
 
         if output:
-            return mact, self.R, self.L, self.teff, self.logg
+            return self.mact, self.R, self.L, self.teff, self.logg
 
 
 class PlanetHost(Star):
@@ -880,7 +883,7 @@ class PlanSys(object):
                     mact = mact + planet.q * self.star.mact
 
             if not isinstance(star, PlanetHost):
-                star.dens = 3 * (star.mact*Msun) / (star.R*Rsun)**3.0 / 4 / pi
+                star.dens = star.mact / star.R**3.0
 
             # Impose stellar density
             # Compute a/R* for this planet based on stellar density,
@@ -1846,11 +1849,13 @@ class IsoBinary(FitBinary):
 
     def get_sbr(self, photband):
 
-        sp1 = self.star1.get_spectrum()
-        sp2 = self.star2.get_spectrum()
+        # sp1 = self.star1.get_spectrum()
+        # sp2 = self.star2.get_spectrum()
 
-        f1 = phot.get_flux(sp1, photband)
-        f2 = phot.get_flux(sp2, photband)
+        # f1 = phot.get_flux(sp1, photband)
+        # f2 = phot.get_flux(sp2, photband)
+        f1 = 10 ** (-0.4 * self.star1.Tmag)
+        f2 = 10 ** (-0.4 * self.star2.Tmag)
         ll1 = f1 / (f1 + f2)
         ll2 = 1.0 - ll1
 

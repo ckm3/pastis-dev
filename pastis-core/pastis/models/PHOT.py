@@ -44,8 +44,9 @@ def PASTIS_PHOT(t, photband, isphase, cont, foot, dt0, *args):
 
         elif isinstance(obj, ac.IsoBinary):
             # Add spectrum of each component, and compute flux
-            spectrum = obj.star1.get_spectrum() + obj.star2.get_spectrum()
-            flux = phot.get_flux(spectrum, photband)
+            # spectrum = obj.star1.get_spectrum() + obj.star2.get_spectrum()
+            # flux = phot.get_flux(spectrum, photband)
+            flux = 10 ** (-0.4 * obj.star1.Tmag) + 10 ** (-0.4 * obj.star2.Tmag)
 
             # Get lightcurve from binary
             lc_ = obj.get_LC(t, photband, isphase, dt0)

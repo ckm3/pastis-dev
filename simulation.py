@@ -122,8 +122,10 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
 
         # Check depth
         try:
-            if not check_depth(system, min_depth):
-                if verbose: print('Eclipse / transit depth < {}'.format(min_depth))
+            pass_depth_threshould, depth = check_depth(system, min_depth)
+            if not pass_depth_threshould:
+                if verbose: 
+                    print(f'Eclipse / transit depth {depth} < {min_depth}')
                 rejected['depth'] += 1
                 continue
             else:
@@ -295,7 +297,7 @@ def check_depth(objects, min_depth=None):
     lci = PHOT.PASTIS_PHOT(np.array([0.0, 0.5]), 'TESS', True, 0.0, 1.0, 0.0, 
                            *objects)        
 
-    return (1 - lci.flatten()[0]) * 1e6 > md
+    return (1 - lci.flatten()[0]) * 1e6 > md, (1 - lci.flatten()[0]) * 1e6
 
 
 def getEB(objects):
@@ -339,7 +341,7 @@ def lightcurves(object_list, scenario='PLA', lc_cadence_min=2.0):
             P = obj[0].object2.planets[0].orbital_parameters.P
 
         # define number of points according to period and cadence
-        n_points = np.int(np.ceil(P * 24 * 60 / lc_cadence_min))
+        n_points = np.int64(np.ceil(P * 24 * 60 / lc_cadence_min))
         tt = np.linspace(0, 1, n_points)
         try:
             pickle.dump(obj[0], open("obj.p", "wb"))

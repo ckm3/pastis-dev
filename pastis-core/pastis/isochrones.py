@@ -4,13 +4,15 @@ Module to deal with isochrones.
 
 import sys
 import numpy as np
-from math import log10
-from scipy import interpolate
+from scipy import interpolate, optimize
 
 # Intra-package imports
 from .exceptions import EvolTrackError, OutofIsochroneError
 from .constants import Msun, Rsun, G
 from .tools import loadtxt_iter
+
+from isochrones import SingleStarModel, get_ichrone
+mist = get_ichrone("mist")
 
 
 def interpol_tracks(input_file):
@@ -198,8 +200,14 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
     print("... DONE! \n")
     return
 
+def get_stellarparams(z, logage, minit, distance, ebmv):
+    Av = ebmv * 3.1
+    eep = mist.get_eep(minit, logage, z, accurate=True)
+    teff, logg, feh, mag_list = mist.interp_mag([eep, logage, z, distance, Av], bands=["TESS"])
+    return *mist.interp_value([eep, logage, z], ["Teff", "logg", "logL", "mass"]), mag_list[0]
 
-def get_stellarparams(z, logage, minit, method="linear"):
+
+def get_stellarparams_od(z, logage, minit, method="linear"):
 
     ## Check that input z and minit are within absolute limits of grid
     if np.logical_or(np.greater(z, maxz), np.less(z, minz)):
@@ -278,7 +286,9 @@ def get_stellarparams(z, logage, minit, method="linear"):
             vertinfo = Y[tuple(vi)]
             tmin = vertinfo[0]
             tmax = vertinfo[1]
-            if np.logical_or(np.less_equal(logage, tmin), np.greater_equal(logage, tmax)):
+            if np.logical_or(
+                np.less_equal(logage, tmin), np.greater_equal(logage, tmax)
+            ):
                 continue
 
             vs.append(vi)
@@ -332,7 +342,37 @@ def get_stellarparams(z, logage, minit, method="linear"):
     return vals
 
 
-def get_stellarparams_target(z, y, logT, N=4, Nt=10, planethost=False):
+def get_stellarparams_target(z, y, teff, distance, ebmv, planethost=False):
+    Av = ebmv * 3.1
+    if not planethost:
+        logg = y
+    else:
+        rho = y
+    props = {
+        "feh": (z, 0.1),
+        "logg": (logg, 0.1),
+        "teff": (teff, teff * 0.05),
+        "distance": (distance, 3.5),
+        "Av": (Av, 0.03),
+    }
+    mod = SingleStarModel(mist, **props)
+
+    result = optimize.differential_evolution(
+        lambda params: -mod.lnpost(params),
+        bounds=[
+            (0, 1710),
+            (7, 10.2),
+            (z-0.2, z+0.2),
+            (distance - 10, distance + 10),
+            (Av - 0.1, Av + 0.1),
+            ]
+        )
+    mass, lgAge, logL = mist.interp_value([result.x[0], result.x[1], result.x[2]], ["mass", "age", "logL"])
+    teff, logg, feh, mag_list = mist.interp_mag([result.x[0], result.x[1], result.x[2], distance, Av], bands=["TESS"])
+    return mass, logL, lgAge, mag_list[0]
+    
+
+def get_stellarparams_target_old(z, y, logT, N=4, Nt=10, planethost=False):
     """
     Compute the stellar parameters from an input set given by either z, logg,
     and logT, or z, density, logT. The parameters are obtained by 'cleverly'
