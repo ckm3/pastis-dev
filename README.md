@@ -43,8 +43,12 @@ Activate the environment
 ```
 conda activate pastis-env
 ```
-Install pastis (first install necessary components based on its README.md)
+Install pastis
 ```
 cd pastis-core
 pip install -e .
 ```
+
+Also download necessary lib files [https://storage.cuikaiming.com/share/pastis-lib.tar](https://) and put them under the lib folder.
+The stellar sample can be found at the shared folder `/storage/tess/armstrong/spoc_ffi`
+ 
