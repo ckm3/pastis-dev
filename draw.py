@@ -223,11 +223,12 @@ def _draw_parameters_beb(ticstar, **kwargs):
 
     # Build secondary
     bkg_secondary = c.SecondaryBkgParameters(bkg_primary)
-    bkg_secondary.draw()
 
     # Draw orbit
     orbit = c.OrbitParameters(orbittype="binary", **kwargs)
     orbit.draw(len(ticstar), **kwargs)
+    
+    bkg_secondary.draw(orbit)
 
     return [bkg_primary, bkg_secondary, orbit]
 
@@ -273,11 +274,12 @@ def _draw_parameters_boundbinary(ticstar, **kwargs):
 
     # Build secondary
     binary_secondary = c.SecondaryBkgParameters(binary_primary)
-    binary_secondary.draw()
-
+    
     # Draw orbit
     orbit = c.OrbitParameters(orbittype="binary", **kwargs)
     orbit.draw(len(ticstar), **kwargs)
+    
+    binary_secondary.draw(orbit)
 
     return [binary_primary, binary_secondary, orbit]
 
@@ -317,11 +319,12 @@ def _draw_parameters_secondary(ticstar, **kwargs):
     # attribute, we will do that...
 
     binary_secondary = c.SecondaryStarParameters(ticstar)
-    binary_secondary.draw()
 
     # Draw orbit
     orbit = c.OrbitParameters(orbittype="binary", **kwargs)
     orbit.draw(len(ticstar), **kwargs)
+    
+    binary_secondary.draw(orbit)
 
     orbit.q = binary_secondary.q
 

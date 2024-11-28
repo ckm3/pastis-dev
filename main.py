@@ -16,7 +16,7 @@ from pastis import isochrones, limbdarkening, photometry
 
 # Initialise if needed
 if not hasattr(limbdarkening, "LDCs"):
-    limbdarkening.initialize_limbdarkening(["Johnson-R", "TESS"])
+    limbdarkening.initialize_limbdarkening(["TESS"])
 
 # if not hasattr(photometry, "Filters"):
 #     photometry.initialize_phot(
@@ -39,7 +39,7 @@ import simulation as s
 
 
 # Read parameters
-from parameters import SCENARIO, NSIMU_PER_TIC_STAR, THETAMIN_DEG
+from parameters import SCENARIO, NSIMU_PER_TIC_STAR, THETAMIN_DEG, RANDOM_SEED
 # import astropy.units as u
 # import SCENARIO, NSIMU_PER_TIC_STAR
 
@@ -55,7 +55,7 @@ def gen_files(params, part_num, pd_tess, **kwargs):
     )
 
     # Create objects
-    object_list, rej = s.build_objects(input_dict, np.sum(flag), True, verbose=True)
+    object_list, rej = s.build_objects(input_dict, np.sum(flag), True, verbose=False)
 
     # Compute model light curves
     lc = s.lightcurves(object_list, scenario=SCENARIO, lc_cadence_min=2.0)
@@ -218,9 +218,9 @@ for file in filenames:
     print("Reading:", file)
 
     # read files
-    data_pd = pd.read_csv(file).iloc[:100]
+    data_pd = pd.read_csv(file).sample(frac=1, random_state=RANDOM_SEED).iloc[:200]
     # we need the pandas
-    params_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "MH", "ebv", "B", "distance"]].dropna().copy()
+    params_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "MH", "ebv", "B", "distance"]].copy()
     # MH_data_pd = pd.read_csv(MH_data_file)
     # MH_data = MH_data_pd["MH"].values
 

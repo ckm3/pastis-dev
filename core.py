@@ -10,7 +10,7 @@ FP or planetary.
 """
 import os
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import scipy.stats as st
 import h5py
 
@@ -406,7 +406,6 @@ class PlanetParameters(Parameters):
 
             # pmin = A[:, 0]
             # rmin = A[:, 2]
-
             p, r = self.pl_sample[
                 np.random.randint(0, self.pl_sample.shape[0], size=size)
             ].T
@@ -710,7 +709,7 @@ class SecondaryBkgParameters(BlendedStarParameters):
 
         return
 
-    def draw_q(self):
+    def draw_q(self, orbit_obj):
         """
         Draw mass ratio.
 
@@ -718,24 +717,25 @@ class SecondaryBkgParameters(BlendedStarParameters):
 
         See moduleprior.q_def for more details.
         """
-        self.q = binary_mass_ratio(len(self))
+        self.q = binary_mass_ratio(self.primary.mass, orbit_obj.period, len(self))
         return
 
-    def draw_mass(self):
+    def draw_mass(self, orbit_obj):
         """Draw mass based on mass ratio and primary mass."""
         # Draw q
         if not hasattr(self, "q"):
-            self.draw_q()
+            self.draw_q(orbit_obj)
 
         self.mass = self.primary.mass * self.q
         return
 
-    def draw(self):
+    def draw(self, orbit_obj):
         """Draw all parameters. Convenience function."""
-        for d in ["mass", "albedo", "redenning"]:
+        for d in ["albedo", "redenning"]:
             to_run = getattr(self, "draw_{}".format(d))
             # Run draw
             to_run()
+        self.draw_mass(orbit_obj)
 
         # Copy specific attributes from primary star
         # This is redundant as PASTIS takes care of this anyway
@@ -771,7 +771,7 @@ class SecondaryStarParameters(StarParameters):
         """Len method."""
         return len(self.primary)
 
-    def draw_q(self):
+    def draw_q(self, orbit_obj):
         """
         Draw mass ratio.
 
@@ -779,15 +779,17 @@ class SecondaryStarParameters(StarParameters):
 
         See moduleprior.q_def for more details.
         """
-        self.q = binary_mass_ratio(len(self))
+        self.q = binary_mass_ratio(self.primary.mass, orbit_obj.period, len(self))
         return
 
-    def draw(self):
+    def draw(self, orbit_obj):
         """Draw all parameters. Convenience function."""
-        for d in ["q", "albedo"]:
-            to_run = getattr(self, "draw_{}".format(d))
-            # Run draw
-            to_run()
+        # for d in ["q", "albedo"]:
+        #     to_run = getattr(self, "draw_{}".format(d))
+        #     # Run draw
+        #     to_run(orbit_obj)
+        self.draw_q(orbit_obj)
+        self.draw_albedo()
 
         # Copy specific attributes from primary star
         # This is redundant as PASTIS takes care of this anyway
@@ -1022,13 +1024,13 @@ def stellar_albedo(size):
     return np.random.rand(size) * 0.4 + 0.6
 
 
-def binary_mass_ratio(size):
+def binary_mass_ratio(mass, period, size):
     """Draw mass ratio q."""
     # TODO: use joint (q, primary mass) distribution instead of marginal
 
     q = np.empty(size)
     # TODO: awful; try to vectorize function in moduleprior
     for i in range(len(q)):
-        q[i] = mp.q_def()
+        q[i] = mp.q_def(mass[i], period[i])
 
     return q

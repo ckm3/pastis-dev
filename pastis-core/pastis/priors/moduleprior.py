@@ -660,7 +660,53 @@ def semi_major_axis(mass1, mass2, period):
     return a / Rsun
 
 
-def q_def():
+def q_ln_prob(q, gamma_s, gamma_l, f_twin):
+    if gamma_l == -1:
+        lnc = -np.log((0.3**(gamma_s + 1) - 0.1**(gamma_s + 1))/(gamma_s + 1) + 1/(1 - f_twin) * -np.log(0.3))
+    else:
+        lnc = -np.log((0.3**(gamma_s + 1) - 0.1**(gamma_s + 1))/(gamma_s + 1) + 1/(1 - f_twin) * (1 - 0.3**(gamma_l + 1)) / (gamma_l + 1))
+    if 0.1 < q <= 0.3:
+        return gamma_s * np.log(q) + lnc + (gamma_l - gamma_s) * np.log(0.3)
+    elif 0.3 < q < 0.95:
+        return gamma_l * np.log(q) + lnc
+    elif 0.95 < q < 1.0:
+        if gamma_l == -1:
+            return np.log(-np.log(0.3)) + np.log(f_twin / (1 - f_twin)) - np.log(0.05) + lnc
+        else:
+            return np.log((1-0.3**(gamma_l + 1))/(gamma_l + 1)) + np.log(f_twin / (1 - f_twin)) - np.log(0.05) + lnc
+    else:
+        return -np.inf
+
+
+def q_def(mass, period, size=1):
+    lgP = np.log10(period)
+    if lgP < 1:
+        f_twin = 0.3 - 0.15 * np.log10(mass)
+    else:
+        f_twin = (0.3 - 0.15 * np.log10(mass)) * (1 - (lgP-1)/(8 - mass - 1))
+    
+    gamma_l = -0.5
+    gamma_s = 0.3
+    
+    ln_probs = [q_ln_prob(q, gamma_s, gamma_l, f_twin) for q in [0.3, 1.0]]
+    max_ln_prob = max(ln_probs)
+    
+    samples = np.empty(size)
+    count = 0
+    
+    while count < size:
+        q_proposed = np.random.uniform(0, 1)
+        
+        ln_prob_proposed = q_ln_prob(q_proposed, gamma_s, gamma_l, f_twin)
+        ln_accept_prob = ln_prob_proposed - max_ln_prob
+        
+        if np.log(np.random.uniform(0, 1)) < ln_accept_prob:
+            samples[count] = q_proposed
+            count += 1
+    return samples
+
+
+def q_def_old():
     """
     Draw random mass ratio from realistic distribution.
 

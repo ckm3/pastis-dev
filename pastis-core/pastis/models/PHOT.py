@@ -35,7 +35,7 @@ def PASTIS_PHOT(t, photband, isphase, cont, foot, dt0, *args):
         if isinstance(obj, ac.Star):
             # Get flux from star
             # flux = phot.get_flux(obj.get_spectrum(), photband)
-            mag = obj.star.Tmag
+            mag = obj.Tmag
             flux = 10 ** (-0.4 * mag)
             lc_ = obj.get_spots(t, photband)
 
@@ -79,23 +79,29 @@ def PASTIS_PHOT(t, photband, isphase, cont, foot, dt0, *args):
             # Get LC for each component of triple system
             for component in (obj.object1, obj.object2):
                 if isinstance(component, ac.Star):
-                    flux = phot.get_flux(component.get_spectrum(), photband)
+                    flux = 10 ** (-0.4 * component.Tmag)
+                    # flux = phot.get_flux(component.get_spectrum(), photband)
                     lc_ = np.ones(len(t))  # TEMPORAL, implement spots
 
                 elif isinstance(component, ac.IsoBinary):
                     # Add spectrum of each component, and compute flux
-                    spectrum = (
-                        component.star1.get_spectrum() + component.star2.get_spectrum()
-                    )
+                    # spectrum = (
+                    #     component.star1.get_spectrum() + component.star2.get_spectrum()
+                    # )
 
-                    flux = phot.get_flux(spectrum, photband)
+                    # flux = phot.get_flux(spectrum, photband)
+                    flux = (
+                        10 ** (-0.4 * component.star1.Tmag)
+                        + 10 ** (-0.4 * component.star2.Tmag)
+                    )
 
                     # Get lightcurve from binary
                     lc_ = component.get_LC(t, photband, isphase, dt0)
 
                 elif isinstance(component, ac.PlanSys):
                     # Get flux from star
-                    flux = phot.get_flux(component.star.get_spectrum(), photband)
+                    # flux = phot.get_flux(component.star.get_spectrum(), photband)
+                    flux = 10 ** (-0.4 * component.star.Tmag)
 
                     # Get lightcurve from planetary system
                     lc_ = component.get_LC(t, photband, isphase, dt0)

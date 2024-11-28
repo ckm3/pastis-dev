@@ -7,7 +7,7 @@ Created on Fri May  7 17:34:03 2021
 """
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-SCENARIO = 'PLA'
+SCENARIO = 'TRIPLE'
 NSIMU_PER_TIC_STAR = 1
 
 # Directory with tables
@@ -33,3 +33,5 @@ THETAMIN_DEG = 0.0
 
 # Maximum distance for blended stars in pc
 MAX_DIST = 200.0
+
+RANDOM_SEED = 3407

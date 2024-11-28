@@ -56,9 +56,9 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
                 'ebop': 0}
 
     # Iterate over number of simulations
-    for i in range(nsimu):
-
-        if i % 100 == 0:
+    from tqdm import trange
+    for i in trange(nsimu):
+        if i>0 and i % 100 == 0:
             print(i)
         # Iterate over objects
         for obj in input_dict:
@@ -99,15 +99,20 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
                                     ''.format(par, obj))
 
         # Construct objects with full parameter
+        
         try:
             system = ob.ObjectBuilder(dd)
         except EvolTrackError as ex:
             # If fail in Evolution track interpolation, print error and
             # continue
-            if verbose: print(ex)
-            rejected['isochrone'] += 1
+            if verbose: 
+                print(ex)
+                rejected['isochrone'] += 1
+                continue
+        except Exception as ex:
+            print(ex)
             continue
-
+        
         # Check again for transits, this time using realistic parameters
         if not check_eclipses(system):
             if verbose: print('Not transiting')
@@ -115,7 +120,7 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
             continue
 
         # Check system brightness
-        if not  check_brightness(system, max_mag_diff):
+        if not check_brightness(system, max_mag_diff):
             if verbose: print('Magnitud difference > {}'.format(max_mag_diff))
             rejected['brightness'] += 1
             continue
@@ -125,7 +130,7 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
             pass_depth_threshould, depth = check_depth(system, min_depth)
             if not pass_depth_threshould:
                 if verbose: 
-                    print(f'Eclipse / transit depth {depth} < {min_depth}')
+                    print(f'Eclipse / transit depth {depth:.2f} < {min_depth}')
                 rejected['depth'] += 1
                 continue
             else:
@@ -135,10 +140,15 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
             if verbose: print('Encoutered EBOP limit when testing for depth or NaNs')
             rejected['ebop'] += 1
             continue
+        except Exception as ex:
+            print(ex)
+            continue
+
 
         objs.append(system)
 
     if return_rejected_stats:
+        print(len(objs), rejected)
         return objs, rejected
     else:
         return objs
@@ -275,7 +285,8 @@ def check_brightness(objects, max_mag_diff=None):
             primary = getPlanSys(objects).star
         
     # compute delta magnitude
-    delta_mag = primary.get_mag('TESS') - target.get_mag('TESS')
+    # delta_mag = primary.get_mag('TESS') - target.get_mag('TESS')
+    delta_mag = primary.Tmag - target.Tmag
     return (delta_mag > 0) and (delta_mag < mmd)
         
     
