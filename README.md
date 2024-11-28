@@ -35,7 +35,7 @@ Enter the folder
 ```
 cd pastis-dev/
 ```
-Create an conda environment with the given environment.yml
+Create an conda environment with the given environment.yml, and if you are going to install other packages with conda, make sure you are using conda-forge channel.
 ```
 conda env create -f environment.yml
 ```
