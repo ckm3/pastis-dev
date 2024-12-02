@@ -11,6 +11,7 @@ from pastis import AstroClasses as ac
 from pastis.models import PHOT
 from pastis.exceptions import EvolTrackError, EBOPparamError
 import pickle
+from tqdm import trange
 
 '''
 from . import constants as cts
@@ -56,7 +57,6 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
                 'ebop': 0}
 
     # Iterate over number of simulations
-    from tqdm import trange
     for i in trange(nsimu):
         if i>0 and i % 100 == 0:
             print(i)
@@ -114,9 +114,14 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
             continue
         
         # Check again for transits, this time using realistic parameters
-        if not check_eclipses(system):
-            if verbose: print('Not transiting')
-            rejected['inclination'] += 1
+        try: 
+            pass_transit = check_eclipses(system)
+            if not pass_transit: 
+                if verbose: print('Not transiting')
+                rejected['inclination'] += 1
+                continue
+        except Exception as ex:
+            print(ex)
             continue
 
         # Check system brightness

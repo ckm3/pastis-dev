@@ -7,7 +7,12 @@ Created on Fri May  7 17:28:29 2021
 """
 import numpy as np
 import pandas as pd
-# from scipy.stats import gaussian_kde
+import multiprocessing as mp
+import argparse
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument("--batch_id", type=int, default=0)
+args = argparser.parse_args()
 
 # Import relevant modules from PASTIS
 from pastis import isochrones, limbdarkening, photometry
@@ -218,7 +223,7 @@ for file in filenames:
     print("Reading:", file)
 
     # read files
-    data_pd = pd.read_csv(file).sample(frac=1, random_state=RANDOM_SEED).iloc[:200]
+    data_pd = pd.read_csv(file).sample(frac=1, random_state=RANDOM_SEED)
     # we need the pandas
     params_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "MH", "ebv", "B", "distance"]].copy()
     # MH_data_pd = pd.read_csv(MH_data_file)
@@ -238,22 +243,26 @@ for file in filenames:
     full_data = pd.concat([full_data, params_pd])
     full_data_PD = pd.concat([full_data_PD, data_pd])
 
-# Split into batches and process
-batch_size = 20000
-start = 0
-num_batches = (len(full_data_PD) + batch_size - 1) // batch_size  # Ceiling division
-
-for part in range(num_batches):
-    end = min(start + batch_size, len(full_data_PD))
-    # if part >= 0:  # to avoid restart in case of failure
+def process_batch(start, end, part, full_data, full_data_PD):
     print(start, end, "Part:", part)
-    # TEFF_LOGG_MH_slice = full_data[start:end]
-    # to use the same format as before
-    # params = TEFF_LOGG_MH_slice.flatten().reshape(
-        # 3, len(TEFF_LOGG_MH_slice), order="F"
-    # )
     params = full_data.iloc[start:end].values.T
     gen_files(params, part, full_data_PD, method="uniform")
-    start = end
-    # Not sure if this works or not, just in case
-    # gc.collect()
+
+if __name__ == "__main__":
+    # Split into batches and process
+    batch_size = 100 # send this number of objects to each process
+    start = args.batch_id * batch_size
+    num_batches = 4
+    # num_batches = (len(full_data_PD) + batch_size - 1) // batch_size  # Ceiling division
+
+    with mp.Pool(num_batches) as pool:
+        results = []
+        for part in range(num_batches):
+            end = min(start + batch_size, len(full_data_PD))
+            results.append(pool.apply_async(process_batch, (start, end, args.batch_id + part, full_data, full_data_PD)))
+            start = end
+
+        for result in results:
+            result.get()  # Ensure all processes complete
+
+    print("All batches processed.")
