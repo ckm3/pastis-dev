@@ -58,8 +58,6 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
 
     # Iterate over number of simulations
     for i in trange(nsimu):
-        if i>0 and i % 100 == 0:
-            print(i)
         # Iterate over objects
         for obj in input_dict:
             dd[obj] = {}
@@ -102,6 +100,7 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
         
         try:
             system = ob.ObjectBuilder(dd)
+            system[0].ticid = int(dd['Target1']['ticid'][0])
         except EvolTrackError as ex:
             # If fail in Evolution track interpolation, print error and
             # continue

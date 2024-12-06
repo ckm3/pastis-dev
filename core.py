@@ -145,6 +145,7 @@ class TargetStarParameters(StarParameters):
             "Albedo": ["albedo", "", "albedo"],
             "Redenning": ["ebmv", "", "ebmv"],
             "Doppler beaming factors": ["B", "", "B"],
+            "TIC ID": ["ticid", "", "ticid"],
         }
 
         self.drawn = 0
@@ -166,6 +167,8 @@ class TargetStarParameters(StarParameters):
                 ["[M/H]", self.feh],
                 ["E(B-V)", self.ebmv],
                 ["B", self.B],
+                ["Distance", self.distance],
+                ["TIC ID", self.ticid],
             ]
         )
 
@@ -181,8 +184,9 @@ class TargetStarParameters(StarParameters):
         self.feh = params[6]
         self.ebmv = params[7]
         self.B = params[8]
+        self.ticid = params[9]
         try:
-            self.distance = params[9]
+            self.distance = params[10]
         except IndexError:
             self.distance = params[0] * 0.0 + 10.0
 

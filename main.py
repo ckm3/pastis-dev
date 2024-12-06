@@ -3,53 +3,49 @@
 """
 Created on Fri May  7 17:28:29 2021
 
-@author: rodrigo
+@author: rodrigo, modified by Kaiming
 """
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
 import argparse
+import os
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument("--batch_id", type=int, default=0)
 args = argparser.parse_args()
 
 # Import relevant modules from PASTIS
-from pastis import isochrones, limbdarkening, photometry
-# from pastis.extlib import SAMdict, EMdict
-# from pastis.paths import filterpath, zeromagfile
+from pastis import limbdarkening
 
 # Initialise if needed
 if not hasattr(limbdarkening, "LDCs"):
     limbdarkening.initialize_limbdarkening(["TESS"])
 
-# if not hasattr(photometry, "Filters"):
-#     photometry.initialize_phot(
-#         ["Johnson-R", "TESS"], zeromagfile, filterpath, AMmodel=SAMdict["BT-settl"]
-#     )
-#     # photometry.initialize_phot_WD()
-# if not hasattr(isochrones, "maxz"):
-#     isochrones.interpol_tracks(EMdict["Dartmouth"])
-#     isochrones.prepare_tracks_target(EMdict["Dartmouth"])
-
-# import core as c
-
-# from pastisML_tess import draw as d
 import draw as d
-# import parameters as p
-
-# Because pastis is crap, we can only import this after initialisation
-# from pastisML_tess import simulation as s
 import simulation as s
-
 
 # Read parameters
 from parameters import SCENARIO, NSIMU_PER_TIC_STAR, THETAMIN_DEG, RANDOM_SEED
-# import astropy.units as u
-# import SCENARIO, NSIMU_PER_TIC_STAR
 
-# to force garbage collection
-import gc
+
+def get_flat_attributes(obj, parent_key='', sep='.'):
+    attributes = {}
+    for key, value in obj.__dict__.items():
+        if isinstance(value, list):
+            for i, item in enumerate(value):
+                new_key = f"{parent_key}{sep}{key}[{i}]" if parent_key else f"{key}[{i}]"
+                if hasattr(item, '__dict__'):
+                    attributes.update(get_flat_attributes(item, new_key, sep=sep))
+                else:
+                    attributes[new_key] = item
+        elif not key.startswith('_') and not callable(value):
+            new_key = f"{parent_key}{sep}{key}" if parent_key else key
+            if hasattr(value, '__dict__'):
+                attributes.update(get_flat_attributes(value, new_key, sep=sep))
+            else:
+                attributes[new_key] = value
+    return attributes
 
 
 def gen_files(params, part_num, pd_tess, **kwargs):
@@ -65,55 +61,25 @@ def gen_files(params, part_num, pd_tess, **kwargs):
     # Compute model light curves
     lc = s.lightcurves(object_list, scenario=SCENARIO, lc_cadence_min=2.0)
 
-    out_file = open(
-        "./simulations/" + SCENARIO + "-lightcurves-index-" + str(part_num) + ".txt",
-        "w",
-    )
+    if not os.path.exists(f"./simulations/{SCENARIO}/" ):
+        os.makedirs(f"./simulations/{SCENARIO}/", exist_ok=True)
 
-    out_file.write("Rejected: \n")
-    out_file.write(str(rej) + "\n")
-    out_file.write("------------- \n")
-
-    # periods candidate
-    if SCENARIO == "BEB" or SCENARIO == "TRIPLE":
-        periods_dict = input_dict["IsoBinary1"]["P"]
-    elif SCENARIO == "PLA" or SCENARIO == "BTP" or SCENARIO == "PIB":
-        planet_key = input_dict["PlanSys1"]["planet1"]
-        periods_dict = input_dict[planet_key]["P"]
-    elif SCENARIO == "EB":
-        periods_dict = input_dict["qBinary1"]["P"]
-
+    output_df = pd.DataFrame()
     for simu_number in range(len(lc)):
-        out_file_line = []
+        attributes_dict = get_flat_attributes(object_list[simu_number][0])
+        for key in list(attributes_dict.keys()):
+            if 'drift' in key.lower():
+                del attributes_dict[key]
+            if "ticid" in key.lower():
+                attributes_dict["TIC"] = attributes_dict[key]
+                del attributes_dict[key]
 
-        # which P was successfull
-        # TODO hay una forma de hacer mejor esto? es horrible
-        pos_elem = np.where(periods_dict == lc[simu_number][1])[0][0]
+        df = pd.DataFrame([attributes_dict])
+        output_df = pd.concat([output_df, df])
 
-        for obj in input_dict:
-            if obj == "Target1":
-                teff_obj = input_dict[obj]["teff"][pos_elem]
-                logg_obj = input_dict[obj]["logg"][pos_elem]
-                # aprendiendo pandas a los golpes :P
-                id_obj = (
-                    pd_tess[
-                        (pd_tess["Teff"] == teff_obj) & (pd_tess["logg"] == logg_obj)
-                    ]["ID"]
-                    .head(1)
-                    .to_numpy()[0]
-                )
-                out_file_line.append(("ID", id_obj))
-
-            pd = input_dict[obj]
-            for par in pd:
-                if isinstance(pd[par], (np.ndarray, np.generic)):
-                    out_file_line.append((par, pd[par][pos_elem]))
-                else:  # e.g. istar1:Blend1, 'star1': 'Target1', planet1': 'Planet1'
-                    out_file_line.append((par, pd[par]))
-
-        # save simulation and values
+        # save simulations
         simu_name = (
-            "./simulations/"
+            f"./simulations/{SCENARIO}/lcs/"
             + SCENARIO
             + "-simu-"
             + str(part_num)
@@ -121,93 +87,21 @@ def gen_files(params, part_num, pd_tess, **kwargs):
             + str(simu_number)
             + ".csv"
         )
+        if not os.path.exists(simu_name):
+            os.makedirs(os.path.dirname(simu_name), exist_ok=True)
         print("Saving slice:", part_num, "simulation:", simu_number)
         np.savetxt(simu_name, lc[simu_number][0], delimiter=",")  # as np array
+    
+    if output_df.empty:
+        return
+    output_df = pd.merge(output_df, pd_tess, on="TIC", how="inner")
+    output_df.to_csv(f"./simulations/{SCENARIO}/" + SCENARIO + "-parameters-" + str(part_num) + ".csv", index=False)
 
-        for tuple in out_file_line:
-            out_file.write(str(tuple[0]) + " " + str(tuple[1]) + ",")
-
-        # We search for the object used to create the LC
-
-        obj = object_list[simu_number]
-
-        if SCENARIO == "BEB":
-            out_file.write("star1_mact" + " " + str(obj[0].star1.mact) + ",")
-            out_file.write("star2_mact" + " " + str(obj[0].star2.mact) + ",")
-            out_file.write("star1_R" + " " + str(obj[0].star1.R) + ",")
-            out_file.write("star2_R" + " " + str(obj[0].star2.R) + ",")
-            out_file.write("target_mact" + " " + str(obj[1].mact) + ",")
-            out_file.write("target_R" + " " + str(obj[1].R) + ",")
-            out_file.write("target_L" + " " + str(obj[1].L) + ",")
-
-        if SCENARIO == "PLA":
-            out_file.write("star_mact" + " " + str(obj[0].star.mact) + ",")
-            out_file.write("star_R" + " " + str(obj[0].star.R) + ",")
-            out_file.write("star_L" + " " + str(obj[0].star.L) + ",")
-
-        if SCENARIO == "EB":
-            out_file.write("target_mact" + " " + str(obj[0].star1.mact) + ",")
-            out_file.write("star2_mact" + " " + str(obj[0].star2.mact) + ",")
-            out_file.write("target_R" + " " + str(obj[0].star1.R) + ",")
-            out_file.write("star2_R" + "  " + str(obj[0].star2.R) + ",")
-            out_file.write("target_L" + " " + str(obj[0].star1.L) + ",")
-            out_file.write("star2_L" + " " + str(obj[0].star2.L) + ",")
-
-        if SCENARIO == "TRIPLE":
-            out_file.write("star1_mact" + " " + str(obj[0].object2.star1.mact) + ",")
-            out_file.write("star2_mact" + " " + str(obj[0].object2.star2.mact) + ",")
-            out_file.write("star1_R" + " " + str(obj[0].object2.star1.R) + ",")
-            out_file.write("star2_R" + " " + str(obj[0].object2.star2.R) + ",")
-            out_file.write("star1_L" + " " + str(obj[0].object2.star1.L) + ",")
-            out_file.write("star2_L" + " " + str(obj[0].object2.star2.L) + ",")
-            out_file.write("target_mact" + " " + str(obj[0].object1.mact) + ",")
-            out_file.write("target_R" + " " + str(obj[0].object1.R) + ",")
-            out_file.write("target_L" + " " + str(obj[0].object1.L) + ",")
-
-        if SCENARIO == "BTP":
-            out_file.write("star_mact" + " " + str(obj[0].star.mact) + ",")
-            out_file.write("star_R" + " " + str(obj[0].star.R) + ",")
-            out_file.write("star_L" + " " + str(obj[0].star.L) + ",")
-            out_file.write("target_mact" + " " + str(obj[1].mact) + ",")
-            out_file.write("target_R" + " " + str(obj[1].R) + ",")
-            out_file.write("target_L" + " " + str(obj[1].L) + ",")
-
-        if SCENARIO == "PIB":
-            out_file.write("star_mact" + " " + str(obj[0].object2.star.mact) + ",")
-            out_file.write("star_R" + " " + str(obj[0].object2.star.R) + ",")
-            out_file.write("star_L" + " " + str(obj[0].object2.star.L) + ",")
-            out_file.write("target_mact" + " " + str(obj[0].object1.mact) + ",")
-            out_file.write("target_R" + " " + str(obj[0].object1.R) + ",")
-            out_file.write("target_L" + " " + str(obj[0].object1.L) + ",")
-
-        out_file.write(simu_name + "\n")
-    out_file.close()
-    # just in case, we force the garbage collection
-    del lc
-    del input_dict
-    del object_list
-    gc.collect()
-    print("Done!")
-
-
-# Read TIC star parameter list
-
-## without real parameters
-# teff = np.random.randn(NSIMU_PER_TIC_STAR)*20 + 5777
-# feh = np.random.randn(NSIMU_PER_TIC_STAR)*0.01
-# logg = np.random.randn(NSIMU_PER_TIC_STAR)*0.01 + 4.4
 
 
 print("Reading input files")
-# just the names, next version just parse some directory or something
+
 filenames = [
-    # "tic_dec66_00S__64_00S_",
-    # "tic_dec58_00S__56_00S_",
-    # "tic_dec30_00S__28_00S_",
-    # "tic_dec74_00S__72_00S_",
-    # "tic_dec62_00S__60_00S_",
-    # "tic_dec28_00S__26_00S_",
-    # "tic_dec88_00S__86_00S_",
     "filled_spoc_gaia.csv_3-10k.csv"
 ]
 
@@ -217,28 +111,12 @@ full_data = pd.DataFrame([])
 full_data_PD = pd.DataFrame([])
 
 for file in filenames:
-    # TEFF_LOGG_MH_data_file = file + "ID_TEFF_LOGG_MH.csv"
-    # MH_data_file = file + "ID_MH.csv"
-
     print("Reading:", file)
 
     # read files
     data_pd = pd.read_csv(file).sample(frac=1, random_state=RANDOM_SEED)
-    # we need the pandas
-    params_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "MH", "ebv", "B", "distance"]].copy()
-    # MH_data_pd = pd.read_csv(MH_data_file)
-    # MH_data = MH_data_pd["MH"].values
 
-    # kde = gaussian_kde(MH_data, bw_method="scott")
-    # new_MH = kde.resample(len(data), seed=1)[0]
-    # data.loc[:, "MH"] = new_MH
-    # data = data.values.tolist()
-
-    # there must be a more numpy way to do this
-    # filling the MH data
-    # for star in data:
-    #     if np.isnan(star[2]):
-    #         star[2] = np.random.choice(MH_data)
+    params_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "MH", "ebv", "B","TIC","distance"]].copy()
 
     full_data = pd.concat([full_data, params_pd])
     full_data_PD = pd.concat([full_data_PD, data_pd])
@@ -250,10 +128,9 @@ def process_batch(start, end, part, full_data, full_data_PD):
 
 if __name__ == "__main__":
     # Split into batches and process
-    batch_size = 100 # send this number of objects to each process
+    batch_size = 1000 # send this number of objects to each process
     start = args.batch_id * batch_size
-    num_batches = 4
-    # num_batches = (len(full_data_PD) + batch_size - 1) // batch_size  # Ceiling division
+    num_batches = 1
 
     with mp.Pool(num_batches) as pool:
         results = []
