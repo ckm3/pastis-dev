@@ -13,6 +13,7 @@ import os
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument("--batch_id", type=int, default=0)
+argparser.add_argument("--total_batches", type=int, default=1)
 args = argparser.parse_args()
 
 # Import relevant modules from PASTIS
@@ -146,9 +147,12 @@ def process_batch(start, end, part, full_data, full_data_PD):
 
 if __name__ == "__main__":
     # Split into batches and process
-    batch_size = 100 # send this number of objects to each process
+    batch_size = 10000 # send this number of objects to each process
     start = args.batch_id * batch_size
-    num_batches = 1
+    num_batches = 48  # number of simulations
+    num_batches = min(num_batches, args.total_batches - args.batch_id)
+    print(num_batches, args.batch_id, args.total_batches)
+    # num_batches = (len(full_data_PD) + batch_size - 1) // batch_size  # Ceiling division
 
     with mp.Pool(num_batches) as pool:
         results = []
