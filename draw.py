@@ -59,8 +59,8 @@ def draw_parameters(params, scenario, nsimu=1, **kwargs):
         planetdict = {"star1": "Target1", "planet1": "Planet1"}
 
         input_dict = {
-            "Target1": ticstar.to_pastis(flag),
-            "Planet1": planet.to_pastis(flag),
+            "Target1": ticstar.to_pastis(),
+            "Planet1": planet.to_pastis(),
             "PlanSys1": planetdict,
         }
 

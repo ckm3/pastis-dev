@@ -31,7 +31,10 @@ from parameters import SCENARIO, NSIMU_PER_TIC_STAR, THETAMIN_DEG, RANDOM_SEED
 
 def get_flat_attributes(obj, parent_key='', sep='.'):
     attributes = {}
-    for key, value in obj.__dict__.items():
+
+    items = obj.items() if  isinstance(obj, dict) else obj.__dict__.items()
+
+    for key, value in items:
         if isinstance(value, list):
             for i, item in enumerate(value):
                 new_key = f"{parent_key}{sep}{key}[{i}]" if parent_key else f"{key}[{i}]"
@@ -41,7 +44,7 @@ def get_flat_attributes(obj, parent_key='', sep='.'):
                     attributes[new_key] = item
         elif not key.startswith('_') and not callable(value):
             new_key = f"{parent_key}{sep}{key}" if parent_key else key
-            if hasattr(value, '__dict__'):
+            if hasattr(value, '__dict__') or isinstance(value, dict):
                 attributes.update(get_flat_attributes(value, new_key, sep=sep))
             else:
                 attributes[new_key] = value
@@ -56,7 +59,7 @@ def gen_files(params, part_num, pd_tess, **kwargs):
     )
 
     # Create objects
-    object_list, rej = s.build_objects(input_dict, np.sum(flag), True, verbose=False)
+    object_list, rejection_list = s.build_objects(input_dict, flag, True, verbose=False)
 
     # Compute model light curves
     lc = s.lightcurves(object_list, scenario=SCENARIO, lc_cadence_min=2.0)
@@ -97,6 +100,21 @@ def gen_files(params, part_num, pd_tess, **kwargs):
     output_df = pd.merge(output_df, pd_tess, on="TIC", how="inner")
     output_df.to_csv(f"./simulations/{SCENARIO}/" + SCENARIO + "-parameters-" + str(part_num) + ".csv", index=False)
 
+    rej_df = pd.DataFrame()
+    for rej in rejection_list:
+        content_dict = get_flat_attributes(rej)
+        for key in list(content_dict.keys()):
+            if "ticid" in key.lower():
+                content_dict["TIC"] = int(content_dict[key])
+                del content_dict[key]
+        df = pd.DataFrame([content_dict])
+        rej_df = pd.concat([rej_df, df])
+
+    if rej_df.empty:
+        return
+    rej_df = pd.merge(rej_df, pd_tess, on="TIC", how="inner")
+    rej_df.to_csv(f"./simulations/{SCENARIO}/" + SCENARIO + "-rejections-" + str(part_num) + ".csv", index=False)
+
 
 
 print("Reading input files")
@@ -128,7 +146,7 @@ def process_batch(start, end, part, full_data, full_data_PD):
 
 if __name__ == "__main__":
     # Split into batches and process
-    batch_size = 1000 # send this number of objects to each process
+    batch_size = 100 # send this number of objects to each process
     start = args.batch_id * batch_size
     num_batches = 1
 

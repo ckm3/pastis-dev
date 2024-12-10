@@ -49,6 +49,6 @@ cd pastis-core
 pip install -e .
 ```
 
-Also download necessary lib files [https://storage.cuikaiming.com/share/pastis-lib.tar](https://) and put them under the lib folder.
+Also download necessary lib files [https://storage.cuikaiming.com/share/pastis-lib.tar]([https://](https://storage.cuikaiming.com/share/pastis-lib.tar)) and put them under the lib folder.
 The stellar sample can be found at the shared folder `/storage/tess/armstrong/spoc_ffi`
  

@@ -23,7 +23,7 @@ import utils as u
 import parameters as p
 
 
-def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwargs):
+def build_objects(input_dict, flags, return_rejected_stats, verbose=False, **kwargs):
     """
     Build pastis objects.
 
@@ -49,6 +49,7 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
     # Intialise list with objects (use list instead of array
     # because constructions may fail)
     objs = []
+    rejs = []
 
     rejected = {'inclination': 0,
                 'brightness': 0,
@@ -57,7 +58,12 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
                 'ebop': 0}
 
     # Iterate over number of simulations
-    for i in trange(nsimu):
+    for i in trange(len(flags)):
+        # if not flags[i]:
+        #     rejected['inclination'] += 1
+        #     if verbose:
+        #         print('Not transiting')
+        #     continue
         # Iterate over objects
         for obj in input_dict:
             dd[obj] = {}
@@ -80,7 +86,7 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
 
                 # If a float, check that only one simulation is requested
                 elif isinstance(x, float):
-                    assert nsimu == 1, ('More than one simulation requested '
+                    assert len(flags) == 1, ('More than one simulation requested '
                                         'but input_dict has only one value '
                                         'for parameter {} of object {}'
                                         ''.format(par, obj))
@@ -106,18 +112,23 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
             # continue
             if verbose: 
                 print(ex)
-                rejected['isochrone'] += 1
-                continue
+            rejected['isochrone'] += 1
+            dd['fail'] = "isochrone"
+            rejs.append(dd.copy())
+            continue
         except Exception as ex:
             print(ex)
             continue
         
         # Check again for transits, this time using realistic parameters
-        try: 
+        try:
             pass_transit = check_eclipses(system)
             if not pass_transit: 
-                if verbose: print('Not transiting')
+                if verbose: 
+                    print('Not transiting')
                 rejected['inclination'] += 1
+                dd['fail'] = "inclination"
+                rejs.append(dd.copy())
                 continue
         except Exception as ex:
             print(ex)
@@ -125,24 +136,34 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
 
         # Check system brightness
         if not check_brightness(system, max_mag_diff):
-            if verbose: print('Magnitud difference > {}'.format(max_mag_diff))
+            if verbose: 
+                print('Magnitud difference > {}'.format(max_mag_diff))
             rejected['brightness'] += 1
+            dd['fail'] = "brightness"
+            rejs.append(dd.copy())
             continue
 
         # Check depth
         try:
             pass_depth_threshould, depth = check_depth(system, min_depth)
             if not pass_depth_threshould:
+                # if dd['Planet1']["P"][0]<1 and dd['Planet1']['Rp'][0]>1:
+                #     pass
                 if verbose: 
                     print(f'Eclipse / transit depth {depth:.2f} < {min_depth}')
                 rejected['depth'] += 1
+                dd['fail'] = "depth"
+                rejs.append(dd.copy())
                 continue
             else:
                 pass
             
         except (EBOPparamError, AssertionError):
-            if verbose: print('Encoutered EBOP limit when testing for depth or NaNs')
+            if verbose: 
+                print('Encoutered EBOP limit when testing for depth or NaNs')
             rejected['ebop'] += 1
+            dd['fail'] = "ebop"
+            rejs.append(dd.copy())
             continue
         except Exception as ex:
             print(ex)
@@ -153,7 +174,7 @@ def build_objects(input_dict, nsimu, return_rejected_stats, verbose=False, **kwa
 
     if return_rejected_stats:
         print(len(objs), rejected)
-        return objs, rejected
+        return objs, rejs
     else:
         return objs
 
@@ -310,7 +331,7 @@ def check_depth(objects, min_depth=None):
     # Evaluate curve at phase 0 (also evaluate at 0.5 to avoid 
     # PASTIS interpolation; long story...)
     lci = PHOT.PASTIS_PHOT(np.array([0.0, 0.5]), 'TESS', True, 0.0, 1.0, 0.0, 
-                           *objects)        
+                           *objects)
 
     return (1 - lci.flatten()[0]) * 1e6 > md, (1 - lci.flatten()[0]) * 1e6
 
