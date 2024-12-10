@@ -459,7 +459,31 @@ class PlanetParameters(Parameters):
             )
 
         # TODO realistic mass-radius relation
-        self.mass_mearth = r * 0.0 + 1.0
+        def model_mass_from_r(r):
+            threshold1 = np.random.normal(4.37, 0.72)
+            threshold2 = np.random.normal(127, 7)
+            a = np.random.normal(1.02, 0.03)
+            alpha = np.random.normal(0.27, 0.04)
+            b = np.random.normal(0.56, 0.03)
+            beta = np.random.normal(0.67, 0.05)
+            c = np.random.normal(18.6, 6.7)
+            gamma = np.random.normal(-0.06, 0.07)
+            
+            if r <= a * threshold1 ** alpha:
+                m = (r/a) ** (1 / alpha)
+            elif a * threshold1 ** alpha < r <= b * threshold2 ** beta:
+                m = (r/b) ** (1 / beta)
+            else:
+                m = (r/c) ** (1 / gamma)
+            return m
+        
+        self.mass_mearth = []
+        for r in self.radius_rearth:
+            m = model_mass_from_r(r)
+            while m > 13 * cts.GMjup / cts.GMearth or m < 0.1:
+                m = model_mass_from_r(r)
+            self.mass_mearth.append(m)
+        self.mass_mearth = np.array(self.mass_mearth)
         self.mass_mjup = self.mass_mearth * cts.GMearth / cts.GMjup
 
         return
