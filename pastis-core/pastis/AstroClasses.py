@@ -400,7 +400,7 @@ class Target(Star):
     def get_stellarparameters(self, output=False):
         """Get parameters from evolution models."""
         # Get Target Star parameters from evolution tracks
-        mact, logL, logage, Tmag = iso.get_stellarparams_target(
+        mact, logL, logage, Tmag, Gmag, BPmag, RPmag = iso.get_stellarparams_target(
             self.z, self.logg, np.log10(self.teff), self.dist, self.ebmv
         )
 
@@ -408,6 +408,9 @@ class Target(Star):
         self.logage = logage
         self.mact = mact
         self.Tmag = Tmag
+        self.Gmag = Gmag
+        self.BP = BPmag
+        self.RP = RPmag
 
         # Compute radius
         self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
@@ -432,13 +435,16 @@ class Blend(Star):
         """
 
         # Get Blend Star parameters from evolution tracks
-        teff, logg, logL, mact, Tmag = iso.get_stellarparams(self.z, self.logage, self.minit, self.dist, self.ebmv)
+        teff, logg, logL, mact, Tmag, Gmag, BPmag, RPmag = iso.get_stellarparams(self.z, self.logage, self.minit, self.dist, self.ebmv)
 
         self.teff = teff
         self.logg = logg
         self.mact = mact
         self.L = 10**logL
         self.Tmag = Tmag
+        self.Gmag = Gmag
+        self.BP = BPmag
+        self.RP = RPmag
         # self.L = self.R**2 * (1 - self.alphaS) * (self.teff / 5777.0) ** 4.0
 
         # Compute radius

@@ -206,8 +206,8 @@ def get_stellarparams(z, logage, minit, distance, ebmv):
         eep = mist.get_eep(minit, logage, z, accurate=True)
     except RuntimeError:
         raise EvolTrackError("EEP minimization failed.")
-    teff, logg, feh, mag_list = mist.interp_mag([eep, logage, z, distance, Av], bands=["TESS"])
-    return *mist.interp_value([eep, logage, z], ["Teff", "logg", "logL", "mass"]), mag_list[0]
+    teff, logg, feh, mag_list = mist.interp_mag([eep, logage, z, distance, Av], bands=["TESS", "G", "BP", "RP"])
+    return *mist.interp_value([eep, logage, z], ["Teff", "logg", "logL", "mass"]), mag_list[0], mag_list[1], mag_list[2], mag_list[3]
 
 
 def get_stellarparams_old(z, logage, minit, method="linear"):
@@ -372,10 +372,10 @@ def get_stellarparams_target(z, y, teff, distance, ebmv, planethost=False):
         )
     try:
         mass, lgAge, logL = mist.interp_value([result.x[0], result.x[1], result.x[2]], ["mass", "age", "logL"])
-        teff, logg, feh, mag_list = mist.interp_mag([result.x[0], result.x[1], result.x[2], distance, Av], bands=["TESS"])
+        teff, logg, feh, mag_list = mist.interp_mag([result.x[0], result.x[1], result.x[2], distance, Av], bands=["TESS", "G", "BP", "RP"])
     except Exception as e:
         raise EvolTrackError(f"Error in interpolation: {e}")
-    return mass, logL, lgAge, mag_list[0]
+    return mass, logL, lgAge, mag_list[0], mag_list[1], mag_list[2], mag_list[3]
     
 
 def get_stellarparams_target_old(z, y, logT, N=4, Nt=10, planethost=False):
