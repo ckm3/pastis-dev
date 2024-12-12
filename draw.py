@@ -71,15 +71,15 @@ def draw_parameters(params, scenario, nsimu=1, **kwargs):
         flag = conservative_transit_flag(beb_params)
 
         # Construct binary dict for pastis
-        binarydict = beb_params[-1].to_pastis(flag)
+        binarydict = beb_params[-1].to_pastis()
         # Add tree-like structure
         binarydict.update({"star1": "Blend1", "star2": "Blend2"})
 
         # binarydict['P'] = beb_params[1].period
         input_dict = {
-            "Target1": ticstar.to_pastis(flag),
-            "Blend1": beb_params[0].to_pastis(flag),
-            "Blend2": beb_params[1].to_pastis(flag),
+            "Target1": ticstar.to_pastis(),
+            "Blend1": beb_params[0].to_pastis(),
+            "Blend2": beb_params[1].to_pastis(),
             "IsoBinary1": binarydict,
         }
 
@@ -95,9 +95,9 @@ def draw_parameters(params, scenario, nsimu=1, **kwargs):
 
         # binarydict['P'] = beb_params[1].period
         input_dict = {
-            "Target1": ticstar.to_pastis(flag),
-            "Blend1": plansys_params[0].to_pastis(flag),
-            "Planet1": plansys_params[1].to_pastis(flag),
+            "Target1": ticstar.to_pastis(),
+            "Blend1": plansys_params[0].to_pastis(),
+            "Planet1": plansys_params[1].to_pastis(),
             "PlanSys1": plansysdict,
         }
 
@@ -108,21 +108,21 @@ def draw_parameters(params, scenario, nsimu=1, **kwargs):
         flag = conservative_transit_flag(bbinary_params)
 
         # Construct binary dict for pastis
-        binarydict = bbinary_params[-1].to_pastis(flag)
+        binarydict = bbinary_params[-1].to_pastis()
         # Add tree-like structure
         binarydict.update({"star1": "Blend1", "star2": "Blend2"})
 
         # binarydict['P'] = beb_params[1].period
         hierch_orbit = c.OrbitParameters(orbittype="triple")
-        hierch_orbit.draw(sum(flag))
+        hierch_orbit.draw(len(flag))
 
         tripledict = hierch_orbit.to_pastis()
         tripledict.update({"object1": "Target1", "object2": "IsoBinary1"})
 
         input_dict = {
-            "Target1": ticstar.to_pastis(flag),
-            "Blend1": bbinary_params[0].to_pastis(flag),
-            "Blend2": bbinary_params[1].to_pastis(flag),
+            "Target1": ticstar.to_pastis(),
+            "Blend1": bbinary_params[0].to_pastis(),
+            "Blend2": bbinary_params[1].to_pastis(),
             "IsoBinary1": binarydict,
             "Triple1": tripledict,
         }
@@ -139,7 +139,7 @@ def draw_parameters(params, scenario, nsimu=1, **kwargs):
 
         # Draw orbital parameters for triple
         hierch_orbit = c.OrbitParameters(orbittype="triple")
-        hierch_orbit.draw(sum(flag))
+        hierch_orbit.draw(len(flag))
 
         # Construct dictionary of hierarchichal orbit
         tripledict = hierch_orbit.to_pastis()
@@ -147,9 +147,9 @@ def draw_parameters(params, scenario, nsimu=1, **kwargs):
 
         # binarydict['P'] = beb_params[1].period
         input_dict = {
-            "Target1": ticstar.to_pastis(flag),
-            "Blend1": plansys_params[0].to_pastis(flag),
-            "Planet1": plansys_params[1].to_pastis(flag),
+            "Target1": ticstar.to_pastis(),
+            "Blend1": plansys_params[0].to_pastis(),
+            "Planet1": plansys_params[1].to_pastis(),
             "PlanSys1": plansysdict,
             "Triple1": tripledict,
         }
@@ -167,13 +167,13 @@ def draw_parameters(params, scenario, nsimu=1, **kwargs):
         flag = conservative_transit_flag(eb_params)
 
         # Construct binary dict for pastis
-        binarydict = eb_params[-1].to_pastis(flag)
+        binarydict = eb_params[-1].to_pastis()
 
         # Update orbital parameters with values from secondary
         # This is because the qBinary class in PASTIS is not
         # written the same way as IsoBinary, for example; only
         # one star is required here
-        binarydict.update(eb_params[1].to_pastis(flag))
+        binarydict.update(eb_params[1].to_pastis())
 
         # Add tree-like structure
         # Only primary required in qBinary
@@ -181,7 +181,7 @@ def draw_parameters(params, scenario, nsimu=1, **kwargs):
 
         # binarydict['P'] = beb_params[1].period
         input_dict = {
-            "Target1": ticstar.to_pastis(flag),
+            "Target1": ticstar.to_pastis(),
             #   'Blend2': eb_params[1].to_pastis(flag),
             "qBinary1": binarydict,
         }
