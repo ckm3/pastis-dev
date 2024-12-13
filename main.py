@@ -14,6 +14,7 @@ import os
 argparser = argparse.ArgumentParser()
 argparser.add_argument("--batch_id", type=int, default=0)
 argparser.add_argument("--total_batches", type=int, default=1)
+argparser.add_argument("--scenario", type=str, default="PLA")
 args = argparser.parse_args()
 
 # Import relevant modules from PASTIS
@@ -28,6 +29,7 @@ import simulation as s
 
 # Read parameters
 from parameters import SCENARIO, NSIMU_PER_TIC_STAR, THETAMIN_DEG, RANDOM_SEED
+SCENARIO = args.scenario
 
 
 def get_flat_attributes(obj, parent_key='', sep='.'):
@@ -82,15 +84,7 @@ def gen_files(params, part_num, pd_tess, **kwargs):
         output_df = pd.concat([output_df, df])
 
         # save simulations
-        simu_name = (
-            f"./simulations/{SCENARIO}/lcs/"
-            + SCENARIO
-            + "-simu-"
-            + str(part_num)
-            + "-"
-            + str(simu_number)
-            + ".csv"
-        )
+        simu_name = f"./simulations/{SCENARIO}/lcs/{SCENARIO}-simu-{part_num}-{simu_number}.csv"
         if not os.path.exists(simu_name):
             os.makedirs(os.path.dirname(simu_name), exist_ok=True)
         print("Saving slice:", part_num, "simulation:", simu_number)
@@ -99,7 +93,7 @@ def gen_files(params, part_num, pd_tess, **kwargs):
     if output_df.empty:
         return
     output_df = pd.merge(output_df, pd_tess, on="TIC", how="inner")
-    output_df.to_csv(f"./simulations/{SCENARIO}/" + SCENARIO + "-parameters-" + str(part_num) + ".csv", index=False)
+    output_df.to_csv(f"./simulations/{SCENARIO}/{SCENARIO}-parameters-{part_num}.csv", index=False)
 
     rej_df = pd.DataFrame()
     for rej in rejection_list:
@@ -114,14 +108,14 @@ def gen_files(params, part_num, pd_tess, **kwargs):
     if rej_df.empty:
         return
     rej_df = pd.merge(rej_df, pd_tess, on="TIC", how="inner")
-    rej_df.to_csv(f"./simulations/{SCENARIO}/" + SCENARIO + "-rejections-" + str(part_num) + ".csv", index=False)
+    rej_df.to_csv(f"./simulations/{SCENARIO}/{SCENARIO}-rejections-{part_num}.csv", index=False)
 
 
 
 print("Reading input files")
 
 filenames = [
-    "filled_spoc_gaia.csv_3-10k.csv"
+    "filled_spoc_gaia.csv_3-10k_ruwe105.csv"
 ]
 
 # filenames = filenames * 5  # quick and dirty way to repeat stars, I love it
@@ -134,6 +128,8 @@ for file in filenames:
 
     # read files
     data_pd = pd.read_csv(file).sample(frac=1, random_state=RANDOM_SEED)
+    # remove ticid in konwn tfop
+    data_pd = data_pd[~data_pd.TIC.isin(np.genfromtxt("known_tfop.txt"))]
 
     params_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "MH", "ebv", "B","TIC","distance"]].copy()
 
