@@ -14,7 +14,7 @@ import os
 argparser = argparse.ArgumentParser()
 argparser.add_argument("--batch_id", type=int, default=0)
 argparser.add_argument("--total_batches", type=int, default=1)
-argparser.add_argument("--scenario", type=str, default="PLA")
+argparser.add_argument("--scenario", type=str, default="PLA") #PLA, EB, BEB, BTP, PIB, TRIPLE
 args = argparser.parse_args()
 
 # Import relevant modules from PASTIS
@@ -93,6 +93,7 @@ def gen_files(params, part_num, pd_tess, **kwargs):
     if output_df.empty:
         return
     output_df = pd.merge(output_df, pd_tess, on="TIC", how="inner")
+    output_df.dropna(axis=1, how='all', inplace=True)
     output_df.to_csv(f"./simulations/{SCENARIO}/{SCENARIO}-parameters-{part_num}.csv", index=False)
 
     rej_df = pd.DataFrame()
@@ -115,7 +116,7 @@ def gen_files(params, part_num, pd_tess, **kwargs):
 print("Reading input files")
 
 filenames = [
-    "filled_spoc_gaia.csv_3-10k_ruwe105.csv"
+    "filled_spoc_gaia_3-10k_ruwe105.csv"
 ]
 
 # filenames = filenames * 5  # quick and dirty way to repeat stars, I love it
@@ -127,11 +128,11 @@ for file in filenames:
     print("Reading:", file)
 
     # read files
-    data_pd = pd.read_csv(file).sample(frac=1, random_state=RANDOM_SEED)
+    data_pd = pd.read_csv(file).dropna().sample(frac=1, random_state=RANDOM_SEED)
     # remove ticid in konwn tfop
     data_pd = data_pd[~data_pd.TIC.isin(np.genfromtxt("known_tfop.txt"))]
 
-    params_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "MH", "ebv", "B","TIC","distance"]].copy()
+    params_pd = data_pd[["Rad", "Tmag", "Av", "mass", "Teff", "logg", "MH", "Gmag", "BP-RP", "B","TIC","distance"]].copy()
 
     full_data = pd.concat([full_data, params_pd])
     full_data_PD = pd.concat([full_data_PD, data_pd])
@@ -139,7 +140,7 @@ for file in filenames:
 def process_batch(start, end, part, full_data, full_data_PD):
     print(start, end, "Part:", part)
     params = full_data.iloc[start:end].values.T
-    gen_files(params, part, full_data_PD, method="uniform")
+    gen_files(params, part, full_data_PD, method="hsu")
 
 if __name__ == "__main__":
     # Split into batches and process
