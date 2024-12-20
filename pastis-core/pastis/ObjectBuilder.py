@@ -109,7 +109,7 @@ def make_binary(objname, dd, imposeobj=None):
             dd1["z"] = imposeobj.z
             dd1["v0"] = imposeobj.v0
             dd1["dist"] = imposeobj.dist
-            dd1["ebmv"] = imposeobj.ebmv
+            dd1["Av"] = imposeobj.Av
 
         star1 = make_star(starname, dd1)
 
@@ -141,7 +141,7 @@ def make_binary(objname, dd, imposeobj=None):
             dd2["z"] = star1.z
             dd2["dist"] = star1.dist
             dd2["v0"] = star1.v0
-            dd2["ebmv"] = star1.ebmv
+            dd2["Av"] = star1.Av
 
             star2 = make_star(secondaryname, dd2)
 
@@ -180,7 +180,7 @@ def make_plansys(objname, dd, imposeobj=None):
         dd1["z"] = imposeobj.z
         dd1["v0"] = imposeobj.v0
         dd1["dist"] = imposeobj.dist
-        dd1["ebmv"] = imposeobj.ebmv
+        dd1["Av"] = imposeobj.Av
 
     # Build central star instance
     star = make_star(starname, dd1)
@@ -240,7 +240,7 @@ def make_star(objname, dd, imposeobj=None):
         dd["z"] = imposeobj.z
         dd["v0"] = imposeobj.v0
         dd["dist"] = imposeobj.dist
-        dd["ebmv"] = imposeobj.ebmv
+        dd["Av"] = imposeobj.Av
 
     if "Target" in objname:
         star = ac.Target(**dd)

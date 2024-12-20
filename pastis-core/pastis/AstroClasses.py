@@ -73,13 +73,16 @@ class Star(object):
 
         # Other parameters
         self.Tmag = kwargs.pop("Tmag", None)
+        self.Gmag = kwargs.pop("Gmag", None)
+        self.BPmRP = kwargs.pop("BPmRP", None)
         self.dist = kwargs.pop("dist", 0.001)
         self.vsini = kwargs.pop("vsini", 10.0)
         self.v0 = kwargs.pop("v0", 0.0)
         self.drift1 = kwargs.pop("drift1", 0.0)
         self.drift2 = kwargs.pop("drift2", 0.0)
         self.drift3 = kwargs.pop("drift3", 0.0)
-        self.ebmv = kwargs.pop("ebmv", None)
+        self.Av = kwargs.pop("Av", None)
+        # self.ebmv = kwargs.pop("ebmv", None)
 
         # Wavelength dependent parameters
         self.albedo = kwargs.pop("albedo", None)
@@ -400,21 +403,21 @@ class Target(Star):
     def get_stellarparameters(self, output=False):
         """Get parameters from evolution models."""
         # Get Target Star parameters from evolution tracks
-        mact, logL, logage, Tmag, Gmag, BPmag, RPmag = iso.get_stellarparams_target(
-            self.z, self.logg, np.log10(self.teff), self.dist, self.ebmv
+        mass, logL, logage, radius, Tmag, Gmag, BPmag, RPmag = iso.get_stellarparams_target(
+            self.z, self.logg, self.teff, self.dist, self.Av, self.Gmag, self.BPmRP, self.R, self.mact
         )
 
         self.L = 10**logL
         self.logage = logage
-        self.mact = mact
+        self.mact = mass
         self.Tmag = Tmag
         self.Gmag = Gmag
         self.BP = BPmag
         self.RP = RPmag
 
         # Compute radius
-        self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
-
+        # self.R = np.sqrt(self.L * (5777.0 / self.teff) ** 4.0 / (1 - self.alphaS))
+        self.R = radius
         if output:
             return self.mact, self.R, self.L
 
@@ -435,7 +438,7 @@ class Blend(Star):
         """
 
         # Get Blend Star parameters from evolution tracks
-        teff, logg, logL, mact, Tmag, Gmag, BPmag, RPmag = iso.get_stellarparams(self.z, self.logage, self.minit, self.dist, self.ebmv)
+        teff, logg, logL, mact, Tmag, Gmag, BPmag, RPmag = iso.get_stellarparams(self.z, self.logage, self.minit, self.dist, self.Av)
 
         self.teff = teff
         self.logg = logg
@@ -584,7 +587,7 @@ class Triple(object):
         self.drift1 = Object1.drift1
         self.drift2 = Object1.drift2
         self.drift3 = Object1.drift3
-        self.ebmv = Object1.ebmv
+        self.Av = Object1.Av
 
         self.object1 = Object1
         self.object2 = Object2
@@ -829,7 +832,7 @@ class PlanSys(object):
         self.drift1 = star.drift1
         self.drift2 = star.drift2
         self.drift3 = star.drift3
-        self.ebmv = star.ebmv
+        self.Av = star.Av
 
         star._parent = self
 
@@ -1823,7 +1826,7 @@ class IsoBinary(FitBinary):
         self.drift1 = Star1.drift1
         self.drift2 = Star1.drift2
         self.drift3 = Star1.drift3
-        self.ebmv = Star1.ebmv
+        self.Av = Star1.Av
 
         Star1._parent = self
         Star2._parent = self
@@ -1912,7 +1915,7 @@ class qBinary(IsoBinary):
             "z": primary.z,
             "dist": primary.dist,
             "v0": primary.v0,
-            "ebmv": primary.ebmv,
+            "Av": primary.Av,
             "vsini": kwargs.pop("vsini2", None),
             "albedo": kwargs.pop("albedo2", None),
             "ua": kwargs.pop("ua2", None),

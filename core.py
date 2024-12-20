@@ -90,7 +90,7 @@ class StarParameters(Parameters):
 
         NOTE: until further notice this just returns 0.
         """
-        self.ebmv = np.zeros(len(self))
+        self.Av = np.zeros(len(self))
         return
 
 
@@ -143,7 +143,9 @@ class TargetStarParameters(StarParameters):
             "Metallicity": ["feh", "", "z"],
             "Distance": ["distance", "pc", "dist"],
             "Albedo": ["albedo", "", "albedo"],
-            "Redenning": ["ebmv", "", "ebmv"],
+            # "Redenning": ["ebmv", "", "ebmv"],
+            "Gaia Gmag": ["Gmag", "", "Gmag"],
+            "Gaia BP-RP": ["BPmRP", "", "BPmRP"],
             "Doppler beaming factors": ["B", "", "B"],
             "TIC ID": ["ticid", "", "ticid"],
         }
@@ -165,7 +167,9 @@ class TargetStarParameters(StarParameters):
                 ["Teff", self.teff],
                 ["logg", self.logg],
                 ["[M/H]", self.feh],
-                ["E(B-V)", self.ebmv],
+                # ["E(B-V)", self.ebmv],
+                ["Gaia Gmag", self.Gmag],
+                ["Gaia BP-RP", self.BPmRP],
                 ["B", self.B],
                 ["Distance", self.distance],
                 ["TIC ID", self.ticid],
@@ -182,11 +186,13 @@ class TargetStarParameters(StarParameters):
         self.teff = params[4]
         self.logg = params[5]
         self.feh = params[6]
-        self.ebmv = params[7]
-        self.B = params[8]
-        self.ticid = params[9]
+        # self.ebmv = params[7]
+        self.Gmag = params[7]
+        self.BPmRP = params[8]
+        self.B = params[9]
+        self.ticid = params[10]
         try:
-            self.distance = params[10]
+            self.distance = params[11]
         except IndexError:
             self.distance = params[0] * 0.0 + 10.0
 
@@ -546,7 +552,7 @@ class BlendedStarParameters(StarParameters):
             "Age": ["logage", "Gyr [log]", "logage"],
             "Metallicity": ["feh", "", "z"],
             "Albedo": ["albedo", "", "albedo"],
-            "Redenning": ["ebmv", "", "ebmv"],
+            "Redenning": ["Av", "", "Av"],
         }
         self.drawn = 0
 
@@ -851,7 +857,7 @@ class BoundPrimaryParameters(StarParameters):
             "Metallicity": ["feh", "", "z"],
             "Distance": ["distance", "pc", "dist"],
             "Albedo": ["albedo", "", "albedo"],
-            "Redenning": ["ebmv", "", "ebmv"],
+            "Redenning": ["Av", "", "Av"],
         }
         self.drawn = 0
 
