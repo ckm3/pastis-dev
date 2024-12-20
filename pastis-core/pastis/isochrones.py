@@ -11,8 +11,12 @@ from .exceptions import EvolTrackError, OutofIsochroneError
 from .constants import Msun, Rsun, G
 from .tools import loadtxt_iter
 
-from isochrones import SingleStarModel, get_ichrone
+from isochrones import get_ichrone
+
 mist = get_ichrone("mist")
+from isochrones.mist import MIST_EvolutionTrack
+
+mist_track = MIST_EvolutionTrack()
 
 
 def interpol_tracks(input_file):
@@ -200,14 +204,22 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
     print("... DONE! \n")
     return
 
-def get_stellarparams(z, logage, minit, distance, ebmv):
-    Av = ebmv * 3.1
+
+def get_stellarparams(z, logage, minit, distance, Av):
     try:
         eep = mist.get_eep(minit, logage, z, accurate=True)
     except RuntimeError:
         raise EvolTrackError("EEP minimization failed.")
-    teff, logg, feh, mag_list = mist.interp_mag([eep, logage, z, distance, Av], bands=["TESS", "G", "BP", "RP"])
-    return *mist.interp_value([eep, logage, z], ["Teff", "logg", "logL", "mass"]), mag_list[0], mag_list[1], mag_list[2], mag_list[3]
+    teff, logg, feh, mag_list = mist.interp_mag(
+        [eep, logage, z, distance, Av], bands=["TESS", "G", "BP", "RP"]
+    )
+    return (
+        *mist.interp_value([eep, logage, z], ["Teff", "logg", "logL", "mass"]),
+        mag_list[0],
+        mag_list[1],
+        mag_list[2],
+        mag_list[3],
+    )
 
 
 def get_stellarparams_old(z, logage, minit, method="linear"):
@@ -345,38 +357,56 @@ def get_stellarparams_old(z, logage, minit, method="linear"):
     return vals
 
 
-def get_stellarparams_target(z, y, teff, distance, ebmv, planethost=False):
-    Av = ebmv * 3.1
+def get_stellarparams_target(
+    z, y, teff, distance, Av, Gmag, BPmRP, radius, mass, planethost=False
+):
     if not planethost:
         logg = y
     else:
-        rho = y
-    props = {
-        "feh": (z, 0.1),
-        "logg": (logg, 0.1),
-        "teff": (teff, teff * 0.05),
-        "distance": (distance, 3.5),
-        "Av": (Av, 0.03),
-    }
-    mod = SingleStarModel(mist, **props)
+        rho = y  # never used
+
+    def target_function(params):
+        ini_mass, eep = params
+
+        intp_m, intp_r, intp_logg, intp_teff = mist_track.interp_value(
+            [ini_mass, eep, z], ["mass", "radius", "logg", "Teff"]
+        )
+        _, _, _, mag_list = mist_track.interp_mag(
+            [ini_mass, eep, z] + [distance, Av], ["G", "BP", "RP"]
+        )
+        if np.isnan(mag_list).any():
+            mag_list = np.zeros(3)
+        if np.isnan([intp_m, intp_r, intp_logg, intp_teff]).any():
+            intp_m, intp_r, intp_logg, intp_teff = np.zeros(4)
+
+        GaiaGmag, BPmag, RPmag = mag_list
+        return (
+            (intp_r - radius) ** 2 / (radius / 2) ** 2
+            + (intp_logg - logg) ** 2 / 0.1**2
+            + (intp_teff - teff) ** 2 / 200**2
+            # + (m - mass) ** 2 / 0.1 ** 2
+            + (GaiaGmag - Gmag) ** 2 / 2e-4**2
+            + (BPmag - RPmag - BPmRP) ** 2 / 2 / 2e-4**2
+        )
 
     result = optimize.differential_evolution(
-        lambda params: -mod.lnpost(params),
+        target_function,
         bounds=[
-            (0, 1710),
-            (7, 10.2),
-            (z-0.2, z+0.2),
-            (distance - 10, distance + 10),
-            (Av - 0.1, Av + 0.1),
-            ]
-        )
-    try:
-        mass, lgAge, logL = mist.interp_value([result.x[0], result.x[1], result.x[2]], ["mass", "age", "logL"])
-        teff, logg, feh, mag_list = mist.interp_mag([result.x[0], result.x[1], result.x[2], distance, Av], bands=["TESS", "G", "BP", "RP"])
-    except Exception as e:
-        raise EvolTrackError(f"Error in interpolation: {e}")
-    return mass, logL, lgAge, mag_list[0], mag_list[1], mag_list[2], mag_list[3]
-    
+            (0.3, 3),
+            (0, 1000),
+        ],
+    )
+    est_mass, est_radius, lg_age, lgL = mist_track.interp_value(
+        [result.x[0], result.x[1], z], ["mass", "radius", "age", "logL"]
+    )
+    _, _, _, mag_list = mist_track.interp_mag(
+        [result.x[0], result.x[1], z] + [distance, Av], ["TESS", "G", "BP", "RP"]
+    )
+    if abs(mass - est_mass) > 0.5 or abs(radius - est_radius) > 0.2:
+        raise EvolTrackError("mismatched mass or radius")
+    Tmag, Gmag, BPmag, RPmag = mag_list
+    return est_mass, lgL, lg_age, est_radius, Tmag, Gmag, BPmag, RPmag
+
 
 def get_stellarparams_target_old(z, y, logT, N=4, Nt=10, planethost=False):
     """
@@ -637,7 +667,7 @@ def plot_maps(Y, t, istime=True):
 
     """
     x, y, nlines = loadtxt_iter('/data/PASTIS/lib/Dartmouth/IDL/nlines.txt',
-                             unpack = True)
+                            unpack = True)
     for i in range(len(x)):
         ax.annotate(str(int(nlines[i])), (x[i], y[i]))
     """
