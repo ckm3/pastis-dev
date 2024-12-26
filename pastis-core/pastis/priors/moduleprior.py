@@ -677,6 +677,7 @@ def q_ln_prob(q, gamma_s, gamma_l, f_twin):
     else:
         return -np.inf
 
+import time
 
 def q_def(mass, period, size=1):
     lgP = np.log10(period)
@@ -693,8 +694,12 @@ def q_def(mass, period, size=1):
     
     samples = np.empty(size)
     count = 0
+    start_time = time.time()
     
     while count < size:
+        if time.time() - start_time > 3:
+            samples = np.ones_like(samples)
+            break
         q_proposed = np.random.uniform(0, 1)
         
         ln_prob_proposed = q_ln_prob(q_proposed, gamma_s, gamma_l, f_twin)
