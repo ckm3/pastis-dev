@@ -14,7 +14,7 @@ import os
 argparser = argparse.ArgumentParser()
 argparser.add_argument("--batch_id", type=int, default=0)
 argparser.add_argument("--total_batches", type=int, default=1)
-argparser.add_argument("--scenario", type=str, default="PLA") #PLA, EB, BEB, BTP, PIB, TRIPLE
+argparser.add_argument("--scenario", type=str, default="BEB") #PLA, EB, BEB, BTP, PIB, TRIPLE
 args = argparser.parse_args()
 
 # Import relevant modules from PASTIS
@@ -34,6 +34,12 @@ SCENARIO = args.scenario
 
 def get_flat_attributes(obj, parent_key='', sep='.'):
     attributes = {}
+
+    if isinstance(obj, list):
+        for i, item in enumerate(obj):
+            new_key = parent_key if len(obj) == 1 else f"{parent_key}[{i}]"
+            attributes.update(get_flat_attributes(item, new_key, sep=sep))
+        return attributes
 
     items = obj.items() if  isinstance(obj, dict) else obj.__dict__.items()
 
@@ -72,7 +78,7 @@ def gen_files(params, part_num, pd_tess, **kwargs):
 
     output_df = pd.DataFrame()
     for simu_number in range(len(lc)):
-        attributes_dict = get_flat_attributes(object_list[simu_number][0])
+        attributes_dict = get_flat_attributes(object_list[simu_number])
         for key in list(attributes_dict.keys()):
             if 'drift' in key.lower():
                 del attributes_dict[key]
@@ -139,12 +145,12 @@ for file in filenames:
 
 def process_batch(start, end, part, full_data, full_data_PD):
     print(start, end, "Part:", part)
-    params = full_data.iloc[start:end].values.T
+    params = full_data.iloc[np.arange(start, end)%len(full_data)].values.T
     gen_files(params, part, full_data_PD, method="hsu")
 
 if __name__ == "__main__":
     # Split into batches and process
-    batch_size = 10000 # send this number of objects to each process
+    batch_size = 100000 # send this number of objects to each process
     start = args.batch_id * batch_size
     num_batches = 48  # number of simulations
     num_batches = min(num_batches, args.total_batches - args.batch_id)
@@ -154,7 +160,7 @@ if __name__ == "__main__":
     with mp.Pool(num_batches) as pool:
         results = []
         for part in range(num_batches):
-            end = min(start + batch_size, len(full_data_PD))
+            end = start + batch_size
             results.append(pool.apply_async(process_batch, (start, end, args.batch_id + part, full_data, full_data_PD)))
             start = end
 
