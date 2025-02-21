@@ -628,6 +628,23 @@ class BlendedStarParameters(StarParameters):
 
 # TODO Clean up; most methods are identically to BlendedStarParameters
 # Leave draw_distance
+
+def cdf(x, L=2100):
+    return  1 - np.exp(-x/L) * (1 + x/L + x**2/L**2/2)
+
+from scipy import optimize
+
+def ppf(q, L=2100):
+    right = 20000
+    while cdf(right, L) < q:
+        right *= 10
+    return optimize.brentq(lambda x: cdf(x, L) - q, 0, right)
+
+def sample_dist(dist, L, size=1):
+    U = np.random.uniform(cdf(dist, L=L), 1, size=size)
+    Y = np.vectorize(ppf)(U, L=L)
+    return Y
+
 class BackgroundStarParameters(BlendedStarParameters):
     """Class with realistic parameters for background stars."""
 
@@ -715,9 +732,10 @@ class BackgroundStarParameters(BlendedStarParameters):
     def draw_distance(self, size=1):
         """Draw distance of background star (from target star)."""
         # TODO consider foreground stars.
-        self.distance = np.random.rand(len(self)) ** (1.0 / 3.0) * self.maxdist
+        # self.distance = np.random.rand(len(self)) ** (1.0 / 3.0) * self.maxdist
+        self.distance = sample_dist(self.foreground.distance, L=2100, size=len(self))
         # Add distance to foreground star
-        self.distance += self.foreground.distance
+        # self.distance += self.foreground.distance
         return
 
 
