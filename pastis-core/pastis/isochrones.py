@@ -208,7 +208,7 @@ def prepare_tracks_target(input_file, AgeUniverse=10.4):
 def get_stellarparams(z, logage, minit, distance, Av):
     try:
         eep = mist.get_eep(minit, logage, z, accurate=True)
-    except RuntimeError:
+    except Exception:
         raise EvolTrackError("EEP minimization failed.")
     teff, logg, feh, mag_list = mist.interp_mag(
         [eep, logage, z, distance, Av], bands=["TESS", "G", "BP", "RP"]

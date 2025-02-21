@@ -67,7 +67,7 @@ def build_objects(input_dict, flags, return_rejected_stats, verbose=False, **kwa
         # Iterate over objects
         for obj in input_dict:
             dd[obj] = {}
-
+            dd["fail"] = ""
             # Iterate over parameters
             for par in input_dict[obj]:
                 # Change name of problematic parameters
