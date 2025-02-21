@@ -8,13 +8,15 @@ Created on Fri May  7 17:28:29 2021
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
+from tqdm import tqdm
 import argparse
 import os
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument("--batch_id", type=int, default=0)
 argparser.add_argument("--total_batches", type=int, default=1)
-argparser.add_argument("--scenario", type=str, default="BEB") #PLA, EB, BEB, BTP, PIB, TRIPLE
+argparser.add_argument("--scenario", type=str, default="PLA") #PLA, EB, BEB, BTP, PIB, TRIPLE
+argparser.add_argument("--dist", type=str, default="hsu")
 args = argparser.parse_args()
 
 # Import relevant modules from PASTIS
@@ -28,8 +30,8 @@ import draw as d
 import simulation as s
 
 # Read parameters
-from parameters import SCENARIO, NSIMU_PER_TIC_STAR, THETAMIN_DEG, RANDOM_SEED
-SCENARIO = args.scenario
+from parameters import NSIMU_PER_TIC_STAR, THETAMIN_DEG, RANDOM_SEED
+# SCENARIO = args.scenario
 
 
 def get_flat_attributes(obj, parent_key='', sep='.'):
@@ -64,14 +66,19 @@ def gen_files(params, part_num, pd_tess, **kwargs):
     # Draw parameters for scenario
 
     input_dict, flag = d.draw_parameters(
-        params, SCENARIO, nsimu=NSIMU_PER_TIC_STAR, thetamin_deg=THETAMIN_DEG, **kwargs
+        params, args.scenario, nsimu=NSIMU_PER_TIC_STAR, thetamin_deg=THETAMIN_DEG, **kwargs
     )
 
     # Create objects
     object_list, rejection_list = s.build_objects(input_dict, flag, True, verbose=False)
 
     # Compute model light curves
-    lc = s.lightcurves(object_list, scenario=SCENARIO, lc_cadence_min=2.0)
+    lc = s.lightcurves(object_list, scenario=args.scenario, lc_cadence_min=2.0)
+
+    if args.dist=="uniform":
+        SCENARIO = "u" + args.scenario
+    else:
+        SCENARIO = args.scenario
 
     if not os.path.exists(f"./simulations/{SCENARIO}/" ):
         os.makedirs(f"./simulations/{SCENARIO}/", exist_ok=True)
@@ -96,22 +103,27 @@ def gen_files(params, part_num, pd_tess, **kwargs):
         print("Saving slice:", part_num, "simulation:", simu_number)
         np.savetxt(simu_name, lc[simu_number][0], delimiter=",")  # as np array
     
-    if output_df.empty:
-        return
-    output_df = pd.merge(output_df, pd_tess, on="TIC", how="inner")
-    output_df.dropna(axis=1, how='all', inplace=True)
-    output_df.to_csv(f"./simulations/{SCENARIO}/{SCENARIO}-parameters-{part_num}.csv", index=False)
+    if not output_df.empty:
+        output_df = pd.merge(output_df, pd_tess, on="TIC", how="inner")
+        output_df.dropna(axis=1, how='all', inplace=True)
+        output_df.to_csv(f"./simulations/{SCENARIO}/{SCENARIO}-parameters-{part_num}.csv", index=False)
 
-    rej_df = pd.DataFrame()
-    for rej in rejection_list:
+    if not rejection_list:  # Early return if empty
+        return
+        
+    # Pre-allocate list for all dictionaries
+    content_dicts = []
+    for rej in tqdm(rejection_list):
         content_dict = get_flat_attributes(rej)
         for key in list(content_dict.keys()):
             if "ticid" in key.lower():
                 content_dict["TIC"] = int(content_dict[key])
                 del content_dict[key]
-        df = pd.DataFrame([content_dict])
-        rej_df = pd.concat([rej_df, df])
-
+        content_dicts.append(content_dict)
+    
+    # Create DataFrame once from all dictionaries
+    rej_df = pd.DataFrame(content_dicts)
+    
     if rej_df.empty:
         return
     rej_df = pd.merge(rej_df, pd_tess, on="TIC", how="inner")
@@ -134,7 +146,9 @@ for file in filenames:
     print("Reading:", file)
 
     # read files
-    data_pd = pd.read_csv(file).dropna().sample(frac=1, random_state=RANDOM_SEED)
+    data_pd = pd.read_csv(file).dropna().sample(frac=1, 
+                                                # random_state=RANDOM_SEED
+    )
     # remove ticid in konwn tfop
     data_pd = data_pd[~data_pd.TIC.isin(np.genfromtxt("known_tfop.txt"))]
 
@@ -144,20 +158,21 @@ for file in filenames:
     full_data_PD = pd.concat([full_data_PD, data_pd])
 
 def process_batch(start, end, part, full_data, full_data_PD):
+    np.random.seed()
     print(start, end, "Part:", part)
     params = full_data.iloc[np.arange(start, end)%len(full_data)].values.T
-    gen_files(params, part, full_data_PD, method="hsu")
+    gen_files(params, part, full_data_PD, method=args.dist)
 
 if __name__ == "__main__":
     # Split into batches and process
-    batch_size = 100000 # send this number of objects to each process
+    batch_size = 10000 # send this number of objects to each process
     start = args.batch_id * batch_size
-    num_batches = 48  # number of simulations
-    num_batches = min(num_batches, args.total_batches - args.batch_id)
+    # num_batches = 48  # number of simulations
+    num_batches = args.total_batches - args.batch_id
     print(num_batches, args.batch_id, args.total_batches)
     # num_batches = (len(full_data_PD) + batch_size - 1) // batch_size  # Ceiling division
 
-    with mp.Pool(num_batches) as pool:
+    with mp.Pool(min(64, num_batches)) as pool:
         results = []
         for part in range(num_batches):
             end = start + batch_size
