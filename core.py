@@ -15,6 +15,7 @@ import scipy.stats as st
 import h5py
 
 # from pastis import limbdarkening as ld
+from tqdm import tqdm
 from pastis.priors import moduleprior as mp
 from pastis.MCMC import priors
 
@@ -465,7 +466,34 @@ class PlanetParameters(Parameters):
             )
 
         # TODO realistic mass-radius relation
-        def model_mass_from_r(r):
+        # def model_mass_from_r(r):
+        #     threshold1 = np.random.normal(4.37, 0.72)
+        #     threshold2 = np.random.normal(127, 7)
+        #     a = np.random.normal(1.02, 0.03)
+        #     alpha = np.random.normal(0.27, 0.04)
+        #     b = np.random.normal(0.56, 0.03)
+        #     beta = np.random.normal(0.67, 0.05)
+        #     c = np.random.normal(18.6, 6.7)
+        #     gamma = np.random.normal(-0.06, 0.07)
+            
+        #     if r <= a * threshold1 ** alpha:
+        #         m = (r/a) ** (1 / alpha)
+        #     elif a * threshold1 ** alpha < r <= b * threshold2 ** beta:
+        #         m = (r/b) ** (1 / beta)
+        #     else:
+        #         m = (r/c) ** (1 / gamma)
+        #     return m
+        
+        # self.mass_mearth = []
+        # for r in self.radius_rearth:
+        #     m = model_mass_from_r(r)
+        #     while m > 13 * cts.GMjup / cts.GMearth or m < 0.1:
+        #         m = model_mass_from_r(r)
+        #     self.mass_mearth.append(m)
+        # self.mass_mearth = np.array(self.mass_mearth)
+        # self.mass_mjup = self.mass_mearth * cts.GMearth / cts.GMjup
+        print("starting mass-radius sampling...")
+        def model_r_from_mass(m):
             threshold1 = np.random.normal(4.37, 0.72)
             threshold2 = np.random.normal(127, 7)
             a = np.random.normal(1.02, 0.03)
@@ -475,20 +503,22 @@ class PlanetParameters(Parameters):
             c = np.random.normal(18.6, 6.7)
             gamma = np.random.normal(-0.06, 0.07)
             
-            if r <= a * threshold1 ** alpha:
-                m = (r/a) ** (1 / alpha)
-            elif a * threshold1 ** alpha < r <= b * threshold2 ** beta:
-                m = (r/b) ** (1 / beta)
+            if m <= threshold1:
+                r = a * m ** alpha
+            elif threshold1 < m <= threshold2:
+                r = b * m ** beta
             else:
-                m = (r/c) ** (1 / gamma)
-            return m
+                r = c * m ** gamma
+            return r
         
         self.mass_mearth = []
-        for r in self.radius_rearth:
-            m = model_mass_from_r(r)
-            while m > 13 * cts.GMjup / cts.GMearth or m < 0.1:
-                m = model_mass_from_r(r)
-            self.mass_mearth.append(m)
+        for r in tqdm(self.radius_rearth, mininterval=1, desc="Drawing planetary masses"):
+            while True:
+                m = 10**np.random.uniform(-1, np.log10(13* cts.GMjup / cts.GMearth))
+                r_calc = model_r_from_mass(m)
+                if np.isclose(r, r_calc, rtol=1e-2, atol=0):
+                    self.mass_mearth.append(m)
+                    break
         self.mass_mearth = np.array(self.mass_mearth)
         self.mass_mjup = self.mass_mearth * cts.GMearth / cts.GMjup
 
@@ -1009,11 +1039,11 @@ class OrbitParameters(Parameters):
                 self.log_period = np.random.randn(size) * 2.28 + 5.03
             else:
                 a_ = -np.inf
-                b_ = (np.log(self.max_period) - 5.03) / 2.28
+                b_ = (np.log10(self.max_period) - 5.03) / 2.28
                 self.log_period = st.truncnorm.rvs(
                     a=a_, b=b_, loc=5.03, scale=2.28, size=size
                 )
-            self.period = np.exp(self.log_period)
+            self.period = 10**(self.log_period)
 
             self.draw_angles_phase(size, thetamin_deg=thetamin)
 
