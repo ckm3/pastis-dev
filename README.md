@@ -1,10 +1,12 @@
-# pastisML-tess
-Code to produce simulated TESS lightcurves based on PASTIS
+# pastis-dev
 
-## Dependency
-The package uses the PASTIS package (not public yet; sorry!)
+This code simulates TESS planetary and false positive scenarios.
 
-The PASTIS code is available on request, and the main paper describing it is:
+It combines [PASTIS](https://github.com/exord/pastis) and [pastisML-tess](https://github.com/exord/pastisML-tess) into a standalone repository to simulate TESS light curves for planets and astrophysical false positives.
+
+Compared to the original PASTIS and pastisML-tess, we simplified the code to speed up simulations and modified some distributions of physical parameters such as distance, eccentricity, mass-radius, etc. Simulated planetary and false positive signals are used in our series of papers. 
+
+If you find this code useful, please cite the original PASTIS paper and include the link to this GitHub repository.
 
 ```
 @ARTICLE{pastis,
